@@ -1,14 +1,43 @@
+// import * as express from "express";
+// import * as bodyParser from "body-parser";
+// import { Context, Telegraf } from "telegraf";
+// import axios from "axios";
+
+// require("dotenv").config();
+
+// const app = express();
+// const port = process.env.PORT || 5001;
+// const { TOKEN, SERVER_URL } = process.env;
+// console.log("token, server", TOKEN, SERVER_URL);
+// const TELEGRAM_API = `https://api.telegram.org/bot${TOKEN}`;
+// const URI = `/webhook/${TOKEN}`;
+// const WEBHOOK_URL = SERVER_URL + URI;
+
+// const bot = new Telegraf(TOKEN);
+
+// app.use(bodyParser.json());
+
+// const init = async () => {
+//   const webhook = await axios.get(
+//     `${TELEGRAM_API}/setwebhook?url=${WEBHOOK_URL}`
+//   );
+//   console.log(webhook.data);
+// };
+
 import * as express from "express";
 import * as bodyParser from "body-parser";
 import { Context, Telegraf } from "telegraf";
 import axios from "axios";
+import * as dotenv from "dotenv";
 
-require("dotenv").config();
+dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 5001;
-const { TOKEN, SERVER_URL } = process.env;
+const { TOKEN, SERVER_URL, ENVIRONMENT } = process.env;
+
 console.log("token, server", TOKEN, SERVER_URL);
+
 const TELEGRAM_API = `https://api.telegram.org/bot${TOKEN}`;
 const URI = `/webhook/${TOKEN}`;
 const WEBHOOK_URL = SERVER_URL + URI;
@@ -24,20 +53,39 @@ const init = async () => {
   console.log(webhook.data);
 };
 
-// bot.hears(/.*youtube\.com.*|.*youtu\.be.*/, (ctx) => {
-//   const chatId = ctx.message.chat.id;
-//   ctx.reply("Please provide the start timecode (in seconds):");
+// Check the environment variable to determine the configuration
+if (ENVIRONMENT === "local") {
+  // Configuration for local environment
 
-//   // Save user-specific data in the userSessions map
-//   userSessions.set(chatId, {
-//     videoUrl: ctx.message.text,
-//     startSecond: 0,
-//     endSecond: 0,
-//   });
+  app.listen(port, async () => {
+    console.log(`running on port ${port}`);
+    await init();
+  });
 
-//   // Set the state to expect the start timecode
-//   userSessions.get(chatId).state = "start";
-// });
+  console.log("Running in local environment");
+} else if (ENVIRONMENT === "prod") {
+  // Configuration for production environment
+  console.log("Running in production environment");
+
+  // Set up HTTPS server for production
+  const https = require("https");
+  const fs = require("fs");
+
+  const options = {
+    key: fs.readFileSync("/etc/nginx/ssl/selfsigned.key"),
+    cert: fs.readFileSync("/etc/nginx/ssl/selfsigned.crt"),
+  };
+
+  const server = https.createServer(options, app);
+
+  server.listen(port, () => {
+    console.log(`Server is running on port ${port} in production environment`);
+    init();
+  });
+} else {
+  console.error("Invalid or missing ENVIRONMENT variable");
+  process.exit(1);
+}
 
 type UserSession = {
   videoUrl: string;
@@ -82,7 +130,8 @@ bot.action("full", async (ctx) => {
   // ...
 
   // For demonstration, let's assume you have a method to get full audio and send it back
-  const apiUrl = `http://localhost:3003/audio/crop-audio?videoUrl=${encodeURIComponent(
+  // const apiUrl = `http://localhost:3003/audio/crop-audio?videoUrl=${encodeURIComponent(
+  const apiUrl = `http://167.71.45.196:3003/audio/crop-audio?videoUrl=${encodeURIComponent(
     videoUrl
   )}`;
 
@@ -282,7 +331,7 @@ bot.hears(/.*/, (ctx) => {
 
 bot.launch();
 
-app.listen(port, async () => {
-  console.log(`running on port ${port}`);
-  await init();
-});
+// app.listen(port, async () => {
+//   console.log(`running on port ${port}`);
+//   await init();
+// });
