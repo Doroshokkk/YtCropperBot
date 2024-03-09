@@ -93,10 +93,17 @@ bot.action("full", async (ctx) => {
     });
 
     console.log("data after success", response.headers);
-    ctx.replyWithAudio({
-      source: Buffer.from(response.data),
-      filename: "ren.mp3",
-    });
+    ctx.replyWithAudio(
+      {
+        source: Buffer.from(response.data),
+        filename: response.headers["x-song-name"],
+      },
+      {
+        title: response.headers["x-song-name"],
+        duration: response.headers["x-audio-duration"],
+        caption: "@ytAudioCropBot",
+      }
+    );
   } catch (error) {
     console.error("Error calling API:", error.message);
     ctx.reply("Error calling the API. Please try again later.");
@@ -178,17 +185,6 @@ bot.hears("End", async (ctx) => {
         caption: "@ytAudioCropBot",
       }
     );
-
-    // ctx.replyWithAudio({
-    //   source: Buffer.from(response.data),
-    //   filename: "ren.mp3",
-    // }, );
-
-    // ctx.telegram.sendAudio(ctx.chat.id, response.data, {
-    //   title: "Fiiile",
-    //   duration: 228,
-    //   caption: "@ytAudioCropBot",
-    // });
   } catch (error) {
     console.error("Error calling API:", error.message);
     ctx.reply("Error calling the API. Please try again later.");
@@ -243,10 +239,17 @@ bot.hears(/\d+/, async (ctx) => {
       console.log("data", response.headers);
       console.log("data", response.headers["x-song-name"]);
 
-      ctx.replyWithAudio({
-        source: Buffer.from(response.data),
-        filename: response.headers["x-song-name"],
-      });
+      ctx.replyWithAudio(
+        {
+          source: Buffer.from(response.data),
+          filename: response.headers["x-song-name"],
+        },
+        {
+          title: response.headers["x-song-name"],
+          duration: response.headers["x-audio-duration"],
+          caption: "@ytAudioCropBot",
+        }
+      );
     } catch (error) {
       console.error("Error calling API:", error.message);
       ctx.reply("Error calling the API. Please try again later.");
