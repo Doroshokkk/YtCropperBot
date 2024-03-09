@@ -170,12 +170,11 @@ bot.hears("End", async (ctx) => {
     ctx.replyWithAudio(
       {
         source: Buffer.from(response.data),
-        filename: "ren.mp3",
+        filename: response.headers["x-song-name"],
       },
       {
-        //to move to other places
-        title: "fuck yeah", // to change
-        duration: 228, // to change
+        title: response.headers["x-song-name"],
+        duration: response.headers["x-audio-duration"],
         caption: "@ytAudioCropBot",
       }
     );
