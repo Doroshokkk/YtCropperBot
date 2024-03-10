@@ -1,29 +1,3 @@
-// import * as express from "express";
-// import * as bodyParser from "body-parser";
-// import { Context, Telegraf } from "telegraf";
-// import axios from "axios";
-
-// require("dotenv").config();
-
-// const app = express();
-// const port = process.env.PORT || 5001;
-// const { TOKEN, SERVER_URL } = process.env;
-// console.log("token, server", TOKEN, SERVER_URL);
-// const TELEGRAM_API = `https://api.telegram.org/bot${TOKEN}`;
-// const URI = `/webhook/${TOKEN}`;
-// const WEBHOOK_URL = SERVER_URL + URI;
-
-// const bot = new Telegraf(TOKEN);
-
-// app.use(bodyParser.json());
-
-// const init = async () => {
-//   const webhook = await axios.get(
-//     `${TELEGRAM_API}/setwebhook?url=${WEBHOOK_URL}`
-//   );
-//   console.log(webhook.data);
-// };
-
 import * as express from "express";
 import * as bodyParser from "body-parser";
 import { Context, Telegraf } from "telegraf";
@@ -130,8 +104,7 @@ bot.action("full", async (ctx) => {
   // ...
 
   // For demonstration, let's assume you have a method to get full audio and send it back
-  // const apiUrl = `http://localhost:3003/audio/crop-audio?videoUrl=${encodeURIComponent(
-  const apiUrl = `http://167.71.45.196:3003/audio/crop-audio?videoUrl=${encodeURIComponent(
+  const apiUrl = `http://localhost:3003/audio/crop-audio?videoUrl=${encodeURIComponent(
     videoUrl
   )}`;
 
@@ -151,6 +124,7 @@ bot.action("full", async (ctx) => {
         title: response.headers["x-song-name"],
         duration: response.headers["x-audio-duration"],
         caption: "@ytAudioCropBot",
+        performer: response.headers["x-channel-name"],
       }
     );
   } catch (error) {
@@ -232,6 +206,7 @@ bot.hears("End", async (ctx) => {
         title: response.headers["x-song-name"],
         duration: response.headers["x-audio-duration"],
         caption: "@ytAudioCropBot",
+        performer: response.headers["x-channel-name"],
       }
     );
   } catch (error) {
@@ -297,6 +272,7 @@ bot.hears(/\d+/, async (ctx) => {
           title: response.headers["x-song-name"],
           duration: response.headers["x-audio-duration"],
           caption: "@ytAudioCropBot",
+          performer: response.headers["x-channel-name"],
         }
       );
     } catch (error) {
