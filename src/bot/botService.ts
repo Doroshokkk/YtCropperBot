@@ -108,8 +108,11 @@ export const handleNumberInput = async (ctx) => {
     }
 
     if (userSession.state === "start") {
-        userSession.startSecond = parseFloat(ctx.message.text);
-        ctx.reply("enter a number maaaan");
+        try {
+            userSession.startSecond = parseFloat(ctx.message.text);
+        } catch (error) {
+            ctx.reply("enter a number maaaan");
+        }
 
         const keyboard = {
             reply_markup: {
@@ -121,8 +124,11 @@ export const handleNumberInput = async (ctx) => {
         ctx.reply("Please provide the end timecode (in seconds):", keyboard);
         userSession.state = "end";
     } else if (userSession.state === "end") {
-        userSession.endSecond = parseFloat(ctx.message.text);
-        ctx.reply("Enter a number pls man");
+        try {
+            userSession.endSecond = parseFloat(ctx.message.text);
+        } catch (error) {
+            ctx.reply("Enter a number pls man");
+        }
 
         const { videoUrl, startSecond, endSecond } = userSession;
 
