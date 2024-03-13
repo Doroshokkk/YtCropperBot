@@ -1,6 +1,7 @@
 import { userSessions } from "../utils/userSessions";
 import { replyWithAudioPopulated } from "../utils/replyWithAudioPopulated";
 import { downloadFullSong, downloadCroppedSong } from "../utils/apiUtils";
+import { timeStringToSeconds } from "../utils/secondsConverter";
 
 export const respondToYoutubeLink = (ctx) => {
     const chatId = ctx.message.chat.id;
@@ -46,7 +47,7 @@ export const cropSong = (ctx) => {
         },
     };
 
-    ctx.reply("Enter start time: ", keyboard);
+    ctx.reply("Enter start time (in plain seconds or MM:SS format): ", keyboard);
 };
 
 export const cropFromStart = (ctx) => {
@@ -109,9 +110,10 @@ export const handleNumberInput = async (ctx) => {
 
     if (userSession.state === "start") {
         try {
-            userSession.startSecond = parseFloat(ctx.message.text);
+            // userSession.startSecond = parseFloat(ctx.message.text);
+            userSession.startSecond = timeStringToSeconds(ctx.message.text);
         } catch (error) {
-            ctx.reply("enter a number maaaan");
+            ctx.reply(error);
         }
 
         const keyboard = {
@@ -121,11 +123,12 @@ export const handleNumberInput = async (ctx) => {
             },
         };
 
-        ctx.reply("Please provide the end timecode (in seconds):", keyboard);
+        ctx.reply("Please provide the end timecode", keyboard);
         userSession.state = "end";
     } else if (userSession.state === "end") {
         try {
-            userSession.endSecond = parseFloat(ctx.message.text);
+            // userSession.endSecond = parseFloat(ctx.message.text);
+            userSession.endSecond = timeStringToSeconds(ctx.message.text);
         } catch (error) {
             ctx.reply("Enter a number pls man");
         }
@@ -154,12 +157,12 @@ export const handleOtherInput = (ctx) => {
 
     if (userSession && userSession.state) {
         if (userSession.state === "start") {
-            ctx.reply("Enter a starting seconds number pls man");
+            ctx.reply("Enter starting time you want to crop from");
             return;
         }
 
         if (userSession.state === "end") {
-            ctx.reply("Enter ending seconds number pls man");
+            ctx.reply("Enter ending time you want to crop to");
             return;
         }
         //cancel behaviour
