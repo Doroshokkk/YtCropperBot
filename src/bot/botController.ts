@@ -13,9 +13,9 @@ export const setupBot = () => {
 
     bot.action("crop", cropSong);
 
-    bot.hears("Start", cropFromStart);
+    bot.hears(["Start", "start"], cropFromStart);
 
-    bot.hears("End", cropToEnd);
+    bot.hears(["End", "end"], cropToEnd);
 
     bot.hears(/\d+/, handleNumberInput);
 
