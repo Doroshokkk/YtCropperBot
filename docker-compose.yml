@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  redis:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bot-redis
+    ports:
+      - "6379:6379"
+    restart: always
+    volumes:
+      - redis_data:/data
+    command: ["redis-server", "--appendonly", "yes"]  # Enable AOF persistence
+
+
+volumes:
+  redis_data:
