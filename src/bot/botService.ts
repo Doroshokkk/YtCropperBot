@@ -65,9 +65,6 @@ export const cropFromStart = async (ctx) => {
     setCropSessionField(chatId, "startSecond", "start");
     setCropSessionField(chatId, "state", "end");
 
-    // userSession.startSecond = "start";
-    // userSession.state = "end";
-
     const keyboard = {
         reply_markup: {
             keyboard: [[{ text: "End" }]],
@@ -89,8 +86,6 @@ export const cropToEnd = async (ctx) => {
 
     setCropSessionField(chatId, "endSecond", "end");
 
-    // userSession.endSecond = "end";
-
     const { videoUrl, startSecond } = userSession;
 
     ctx.reply("Loading...");
@@ -110,7 +105,7 @@ export const cropToEnd = async (ctx) => {
 
 export const handleNumberInput = async (ctx) => {
     const chatId = ctx.message.chat.id;
-    const userSession = userSessions.get(chatId);
+    const userSession = await getCropSesssionData(chatId);
 
     if (!userSession) {
         ctx.reply("Invalid session. Please start again.");
@@ -119,8 +114,7 @@ export const handleNumberInput = async (ctx) => {
 
     if (userSession.state === "start") {
         try {
-            // userSession.startSecond = parseFloat(ctx.message.text);
-            userSession.startSecond = timeStringToSeconds(ctx.message.text);
+            setCropSessionField(chatId, "startSecond", timeStringToSeconds(ctx.message.text));
         } catch (error) {
             ctx.reply(error);
         }
@@ -133,30 +127,27 @@ export const handleNumberInput = async (ctx) => {
         };
 
         ctx.reply("Please provide the end timecode", keyboard);
-        userSession.state = "end";
+        setCropSessionField(chatId, "state", "end");
     } else if (userSession.state === "end") {
         try {
-            // userSession.endSecond = parseFloat(ctx.message.text);
-            userSession.endSecond = timeStringToSeconds(ctx.message.text);
+            setCropSessionField(chatId, "endSecond", timeStringToSeconds(ctx.message.text));
         } catch (error) {
             ctx.reply("Enter a number pls man");
         }
 
-        const { videoUrl, startSecond, endSecond } = userSession;
+        const { videoUrl, startSecond, endSecond } = await getCropSesssionData(chatId);
 
         ctx.reply("Loading...");
         try {
             const response = await downloadCroppedSong(videoUrl, startSecond, endSecond);
-
             console.log("data", response.headers);
-
             replyWithAudioPopulated(ctx, response);
         } catch (error) {
             console.error("Error calling API:", error.message);
             ctx.reply("Error calling the API. Please try again later.");
         }
 
-        userSessions.delete(chatId);
+        clearCropSession(chatId);
     }
 };
 
