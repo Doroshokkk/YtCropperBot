@@ -1,11 +1,4 @@
-import {
-    userSessions,
-    initCropSession,
-    getCropSesssionData,
-    getVideoUrl,
-    clearCropSession,
-    setCropSessionField,
-} from "../utils/userSessions";
+import { initCropSession, getCropSesssionData, getVideoUrl, clearCropSession, setCropSessionField } from "../utils/userSessions";
 import { replyWithAudioPopulated } from "../utils/replyWithAudioPopulated";
 import { downloadFullSong, downloadCroppedSong } from "../utils/apiUtils";
 import { timeStringToSeconds } from "../utils/secondsConverter";
@@ -151,9 +144,9 @@ export const handleNumberInput = async (ctx) => {
     }
 };
 
-export const handleOtherInput = (ctx) => {
+export const handleOtherInput = async (ctx) => {
     const chatId = ctx.message.chat.id;
-    const userSession = userSessions.get(chatId);
+    const userSession = await getCropSesssionData(chatId);
 
     if (userSession && userSession.state) {
         if (userSession.state === "start") {
