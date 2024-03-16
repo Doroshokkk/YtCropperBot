@@ -1,4 +1,5 @@
 import { redis } from "../redis/redisClient";
+import { countDownloadedSongs } from "./rateLimiter";
 
 export type UserSession = {
     videoUrl: string;
@@ -52,9 +53,8 @@ export async function clearCropSession(chatId: number) {
         // Delete specific fields related to downloading the song
         await redis.hdel(chatId.toString(), "videoUrl", "startSecond", "endSecond", "state");
         console.log(`Song download session cleared for chatId ${chatId}`);
+        await countDownloadedSongs(chatId);
     } catch (error) {
         console.error("Error clearing song download session from Redis", error);
     }
 }
-
-export const userSessions = new Map<number, UserSession>();
