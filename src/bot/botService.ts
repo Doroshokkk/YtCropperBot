@@ -148,16 +148,25 @@ export const handleOtherInput = async (ctx) => {
     const chatId = ctx.message.chat.id;
     const userSession = await getCropSesssionData(chatId);
 
+    const keyboard = {
+        reply_markup: {
+            keyboard: [[{ text: "Start" }, { text: "End" }, { text: "Cancel" }]],
+            one_time_keyboard: true, // Hide the keyboard after a button is pressed
+        },
+    };
+
     if (userSession && userSession.state) {
         if (userSession.state === "start") {
-            ctx.reply("Enter starting time you want to crop from");
+            ctx.reply("Enter starting time you want to crop from or press cancel", keyboard);
             return;
         }
 
         if (userSession.state === "end") {
-            ctx.reply("Enter ending time you want to crop to");
+            ctx.reply("Enter ending time you want to crop to or press cancel", keyboard);
             return;
         }
+
+        ctx.reply("Please provide a timecode or press cancel", keyboard);
         //cancel behaviour
     }
     console.log(ctx.message?.chat);
