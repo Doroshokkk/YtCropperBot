@@ -172,3 +172,9 @@ export const handleOtherInput = async (ctx) => {
     console.log(ctx.message?.chat);
     ctx.reply("Hello");
 };
+
+export const handleCancellation = async (ctx) => {
+    const chatId = ctx.message.chat.id;
+    ctx.reply("Sure, cancelled the cropping");
+    clearCropSession(chatId);
+};
