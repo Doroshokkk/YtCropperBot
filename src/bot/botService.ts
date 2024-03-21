@@ -2,18 +2,14 @@ import { initCropSession, getCropSesssionData, getVideoUrl, clearCropSession, se
 import { replyWithAudioPopulated } from "../utils/replyWithAudioPopulated";
 import { downloadFullSong, downloadCroppedSong } from "../utils/apiUtils";
 import { timeStringToSeconds } from "../utils/secondsConverter";
+import { cancelKeyboard, endingKeyboard, inlineCropKeyboard, startingKeyboard } from "../utils/keyboards";
 
 export const respondToYoutubeLink = async (ctx) => {
     const chatId = ctx.message.chat.id;
-    const keyboard = {
-        reply_markup: {
-            inline_keyboard: [[{ text: "Full", callback_data: "full" }], [{ text: "Crop", callback_data: "crop" }]],
-        },
-    };
 
     await initCropSession(chatId, ctx.message.text);
 
-    ctx.reply("Choose an option:", keyboard);
+    ctx.reply("Choose an option:", inlineCropKeyboard);
 };
 
 export const getFullSong = async (ctx) => {
@@ -34,16 +30,9 @@ export const getFullSong = async (ctx) => {
 
 export const cropSong = (ctx) => {
     const chatId = ctx.update.callback_query.message.chat.id;
-    const keyboard = {
-        reply_markup: {
-            keyboard: [[{ text: "Start" }]],
-            one_time_keyboard: false,
-        },
-    };
-
     setCropSessionField(chatId, "state", "start");
 
-    ctx.reply("Enter start time (in plain seconds or MM:SS format): ", keyboard);
+    ctx.reply("Enter start time (in plain seconds or MM:SS format): ", startingKeyboard);
 };
 
 export const cropFromStart = async (ctx) => {
@@ -58,14 +47,7 @@ export const cropFromStart = async (ctx) => {
     setCropSessionField(chatId, "startSecond", "start");
     setCropSessionField(chatId, "state", "end");
 
-    const keyboard = {
-        reply_markup: {
-            keyboard: [[{ text: "End" }]],
-            one_time_keyboard: true, // Hide the keyboard after a button is pressed
-        },
-    };
-
-    ctx.reply("Enter end time: ", keyboard);
+    ctx.reply("Enter end time: ", endingKeyboard);
 };
 
 export const cropToEnd = async (ctx) => {
@@ -112,14 +94,7 @@ export const handleNumberInput = async (ctx) => {
             ctx.reply(error);
         }
 
-        const keyboard = {
-            reply_markup: {
-                keyboard: [[{ text: "End" }]],
-                one_time_keyboard: true, // Hide the keyboard after a button is pressed
-            },
-        };
-
-        ctx.reply("Please provide the end timecode", keyboard);
+        ctx.reply("Please provide the end timecode", endingKeyboard);
         setCropSessionField(chatId, "state", "end");
     } else if (userSession.state === "end") {
         try {
@@ -148,26 +123,18 @@ export const handleOtherInput = async (ctx) => {
     const chatId = ctx.message.chat.id;
     const userSession = await getCropSesssionData(chatId);
 
-    const keyboard = {
-        reply_markup: {
-            keyboard: [[{ text: "Start" }, { text: "End" }, { text: "Cancel" }]],
-            one_time_keyboard: true, // Hide the keyboard after a button is pressed
-        },
-    };
-
     if (userSession && userSession.state) {
         if (userSession.state === "start") {
-            ctx.reply("Enter starting time you want to crop from or press cancel", keyboard);
+            ctx.reply("Enter starting time you want to crop from or press cancel", startingKeyboard);
             return;
         }
 
         if (userSession.state === "end") {
-            ctx.reply("Enter ending time you want to crop to or press cancel", keyboard);
+            ctx.reply("Enter ending time you want to crop to or press cancel", endingKeyboard);
             return;
         }
 
-        ctx.reply("Please provide a timecode or press cancel", keyboard);
-        //cancel behaviour
+        ctx.reply("Please click a button or press cancel", cancelKeyboard);
     }
     console.log(ctx.message?.chat);
     ctx.reply("Hello");
