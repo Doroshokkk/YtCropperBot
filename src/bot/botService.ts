@@ -16,6 +16,8 @@ export const getFullSong = async (ctx) => {
     const chatId = ctx.update.callback_query.message.chat.id;
     const videoUrl = await getVideoUrl(chatId);
 
+    ctx.editMessageText(undefined, undefined, "Choose an option:");
+
     ctx.reply("Loading...");
     try {
         const response = await downloadFullSong(videoUrl);
@@ -31,6 +33,8 @@ export const getFullSong = async (ctx) => {
 export const cropSong = (ctx) => {
     const chatId = ctx.update.callback_query.message.chat.id;
     setCropSessionField(chatId, "state", "start");
+
+    ctx.editMessageText(undefined, undefined, "Choose an option:");
 
     ctx.reply("Enter start time (in plain seconds or MM:SS format): ", startingKeyboard);
 };
