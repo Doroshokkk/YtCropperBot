@@ -104,7 +104,7 @@ export const handleNumberInput = async (ctx) => {
         try {
             setCropSessionField(chatId, "endSecond", timeStringToSeconds(ctx.message.text));
         } catch (error) {
-            ctx.reply("Enter a number pls man");
+            ctx.reply("Please enter the number or a timecode");
         }
 
         const { videoUrl, startSecond, endSecond } = await getCropSesssionData(chatId);
