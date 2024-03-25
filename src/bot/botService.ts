@@ -3,20 +3,20 @@ import { replyWithAudioPopulated } from "../utils/replyWithAudioPopulated";
 import { downloadFullSong, downloadCroppedSong } from "../utils/apiUtils";
 import { timeStringToSeconds } from "../utils/secondsConverter";
 import { cancelKeyboard, endingKeyboard, inlineCropKeyboard, startingKeyboard } from "../utils/keyboards";
+import { Context } from "telegraf";
 
-export const respondToYoutubeLink = async (ctx) => {
+export const respondToYoutubeLink = async (ctx: Context) => {
     const chatId = ctx.message.chat.id;
-
+    // @ts-ignore
     await initCropSession(chatId, ctx.message.text);
 
     ctx.reply("Choose an option:", inlineCropKeyboard);
 };
 
-export const getFullSong = async (ctx) => {
+export const getFullSong = async (ctx: Context) => {
+    // @ts-ignore
     const chatId = ctx.update.callback_query.message.chat.id;
     const videoUrl = await getVideoUrl(chatId);
-
-    ctx.editMessageText(undefined, undefined, "Choose an option:");
 
     ctx.reply("Loading...");
     try {
@@ -30,16 +30,15 @@ export const getFullSong = async (ctx) => {
     }
 };
 
-export const cropSong = (ctx) => {
+export const cropSong = (ctx: Context) => {
+    // @ts-ignore
     const chatId = ctx.update.callback_query.message.chat.id;
     setCropSessionField(chatId, "state", "start");
-
-    ctx.editMessageText(undefined, undefined, "Choose an option:");
 
     ctx.reply("Enter start time (in plain seconds or MM:SS format): ", startingKeyboard);
 };
 
-export const cropFromStart = async (ctx) => {
+export const cropFromStart = async (ctx: Context) => {
     const chatId = ctx.message.chat.id;
     const userSession = await getCropSesssionData(chatId);
 
@@ -54,7 +53,7 @@ export const cropFromStart = async (ctx) => {
     ctx.reply("Enter end time: ", endingKeyboard);
 };
 
-export const cropToEnd = async (ctx) => {
+export const cropToEnd = async (ctx: Context) => {
     const chatId = ctx.message.chat.id;
     const userSession = await getCropSesssionData(chatId);
 
@@ -82,7 +81,7 @@ export const cropToEnd = async (ctx) => {
     clearCropSession(chatId);
 };
 
-export const handleNumberInput = async (ctx) => {
+export const handleNumberInput = async (ctx: Context) => {
     const chatId = ctx.message.chat.id;
     const userSession = await getCropSesssionData(chatId);
 
@@ -93,6 +92,7 @@ export const handleNumberInput = async (ctx) => {
 
     if (userSession.state === "start") {
         try {
+            // @ts-ignore
             setCropSessionField(chatId, "startSecond", timeStringToSeconds(ctx.message.text));
         } catch (error) {
             ctx.reply(error);
@@ -102,6 +102,7 @@ export const handleNumberInput = async (ctx) => {
         setCropSessionField(chatId, "state", "end");
     } else if (userSession.state === "end") {
         try {
+            // @ts-ignore
             setCropSessionField(chatId, "endSecond", timeStringToSeconds(ctx.message.text));
         } catch (error) {
             ctx.reply("Please enter the number or a timecode");
@@ -123,7 +124,7 @@ export const handleNumberInput = async (ctx) => {
     }
 };
 
-export const handleOtherInput = async (ctx) => {
+export const handleOtherInput = async (ctx: Context) => {
     const chatId = ctx.message.chat.id;
     const userSession = await getCropSesssionData(chatId);
 
@@ -144,7 +145,7 @@ export const handleOtherInput = async (ctx) => {
     ctx.reply("Hello");
 };
 
-export const handleCancellation = async (ctx) => {
+export const handleCancellation = async (ctx: Context) => {
     const chatId = ctx.message.chat.id;
     ctx.reply("Sure, cancelled the cropping");
     clearCropSession(chatId);

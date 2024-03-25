@@ -1,18 +1,19 @@
 {
-  "compilerOptions": {
-    "module": "commonjs",
-    "declaration": false,
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,
-    "target": "es2017",
-    "sourceMap": true,
-    "outDir": "./dist",
-    "baseUrl": "./",
-    "incremental": true,
-    "skipLibCheck": true
-  },
-  "include": ["src/**/*", "test/**/*.spec.ts"]
+    "compilerOptions": {
+        "module": "commonjs",
+        "declaration": false,
+        "removeComments": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "allowSyntheticDefaultImports": true,
+        "resolveJsonModule": true,
+        "target": "es2017",
+        "sourceMap": true,
+        "outDir": "./dist",
+        "rootDir": "src",
+        "baseUrl": "./",
+        "incremental": true,
+        "skipLibCheck": true
+    },
+    "include": ["src/**/*", "test/**/*.spec.ts"]
 }
