@@ -18,7 +18,9 @@ export const getFullSong = async (ctx: Context) => {
     const chatId = ctx.update.callback_query.message.chat.id;
     const videoUrl = await getVideoUrl(chatId);
 
+    ctx.editMessageReplyMarkup({ inline_keyboard: [] });
     ctx.reply("Loading...");
+
     try {
         const response = await downloadFullSong(videoUrl);
         console.log("data after success", response.headers);
@@ -34,7 +36,7 @@ export const cropSong = (ctx: Context) => {
     // @ts-ignore
     const chatId = ctx.update.callback_query.message.chat.id;
     setCropSessionField(chatId, "state", "start");
-
+    ctx.editMessageReplyMarkup({ inline_keyboard: [] });
     ctx.reply("Enter start time (in plain seconds or MM:SS format): ", startingKeyboard);
 };
 
