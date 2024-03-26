@@ -13,3 +13,13 @@ export async function countDownloadedSongs(chatId: number) {
         console.error("error setting to redis", error);
     }
 }
+
+export async function reachedDownloadLimit(chatId: number) {
+    try {
+        const songsDownloaded = await redis.hget(`${chatId}-info`, "songsDownloaded");
+        if (!songsDownloaded) return false;
+        if (parseInt(songsDownloaded) >= 10) return true;
+    } catch (error) {
+        console.error("retrieving download count from redis", error);
+    }
+}
