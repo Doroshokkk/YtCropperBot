@@ -4,24 +4,38 @@ import { downloadFullSong, downloadCroppedSong } from "../utils/apiUtils";
 import { timeStringToSeconds } from "../utils/secondsConverter";
 import { cancelKeyboard, endingKeyboard, inlineCropKeyboard, startingKeyboard } from "../utils/keyboards";
 import { Context } from "telegraf";
+import { reachedDownloadLimit } from "src/utils/rateLimiter";
 
 export const respondToYoutubeLink = async (ctx: Context) => {
-    const chatId = ctx.message.chat.id;
-    // @ts-ignore
-    await initCropSession(chatId, ctx.message.text);
+    try {
+        const chatId = ctx.message.chat.id;
+        const limitDownload = await reachedDownloadLimit(chatId);
 
-    ctx.reply("Choose an option:", inlineCropKeyboard);
+        if (limitDownload) {
+            ctx.reply(
+                "Sorry, but you have downloaded 10 songs in the last hour. It's a bit too much for my servers, so you have to chill a bit. Try again in some time =)",
+            );
+            return;
+        }
+
+        // @ts-ignore
+        await initCropSession(chatId, ctx.message.text);
+        ctx.reply("Choose an option:", inlineCropKeyboard);
+    } catch (error) {
+        console.error("Error calling API:", error.message);
+        ctx.reply("Error calling the API. Please try again later.");
+    }
 };
 
 export const getFullSong = async (ctx: Context) => {
-    // @ts-ignore
-    const chatId = ctx.update.callback_query.message.chat.id;
-    const videoUrl = await getVideoUrl(chatId);
-
-    ctx.editMessageReplyMarkup({ inline_keyboard: [] });
-    ctx.reply("Loading...");
-
     try {
+        // @ts-ignore
+        const chatId = ctx.update.callback_query.message.chat.id;
+        const videoUrl = await getVideoUrl(chatId);
+
+        ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+        ctx.reply("Loading...");
+
         const response = await downloadFullSong(videoUrl);
         console.log("data after success", response.headers);
         replyWithAudioPopulated(ctx, response);
