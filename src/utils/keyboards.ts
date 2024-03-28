@@ -14,7 +14,7 @@ export const endingKeyboard = {
 
 export const cancelKeyboard = {
     reply_markup: {
-        keyboard: [[{ text: "End" }, { text: "Cancel" }]],
+        keyboard: [[{ text: "Cancel" }]],
         one_time_keyboard: true, // Hide the keyboard after a button is pressed
     },
 };
