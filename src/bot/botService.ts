@@ -4,7 +4,7 @@ import { downloadFullSong, downloadCroppedSong } from "../utils/apiUtils";
 import { timeStringToSeconds } from "../utils/secondsConverter";
 import { cancelKeyboard, endingKeyboard, inlineCropKeyboard, startingKeyboard } from "../utils/keyboards";
 import { Context } from "telegraf";
-import { reachedDownloadLimit } from "src/utils/rateLimiter";
+import { reachedDownloadLimit } from "../utils/rateLimiter";
 
 export const respondToYoutubeLink = async (ctx: Context) => {
     try {
