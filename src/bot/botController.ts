@@ -3,6 +3,7 @@ import {
     cropFromStart,
     cropSong,
     cropToEnd,
+    firstMessage,
     getFullSong,
     handleCancellation,
     handleNumberInput,
@@ -15,6 +16,8 @@ const { TOKEN } = process.env;
 
 export const setupBot = () => {
     const bot = new Telegraf(TOKEN);
+
+    bot.start(firstMessage);
 
     bot.hears(/.*youtube\.com.*|.*youtu\.be.*/, respondToYoutubeLink);
 
