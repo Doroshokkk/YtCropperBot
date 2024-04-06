@@ -1,9 +1,9 @@
 import * as express from "express";
 import * as bodyParser from "body-parser";
-import { Telegraf } from "telegraf";
 import axios from "axios";
 import { setupBot } from "./bot/botController";
 import * as dotenv from "dotenv";
+import { connectDB, disconnectDB } from "./mongo/db";
 dotenv.config();
 
 const app = express();
@@ -21,6 +21,14 @@ app.use(bodyParser.json());
 const init = async () => {
     const webhook = await axios.get(`${TELEGRAM_API}/setwebhook?url=${WEBHOOK_URL}`);
     console.log(webhook.data);
+    await connectDB()
+        .then(() => {
+            console.log("MongoDB connected");
+        })
+        .catch((error) => {
+            console.error("Failed to connect to MongoDB:", error);
+            process.exit(1);
+        });
 };
 
 // Check the environment variable to determine the configuration
@@ -43,9 +51,9 @@ if (ENVIRONMENT === "local") {
 
     const server = https.createServer(options, app);
 
-    server.listen(port, () => {
+    server.listen(port, async () => {
         console.log(`Server is running on port ${port} in production environment`);
-        init();
+        await init();
     });
 } else {
     console.error("Invalid or missing ENVIRONMENT variable");
@@ -53,3 +61,15 @@ if (ENVIRONMENT === "local") {
 }
 
 setupBot();
+
+process.on("SIGINT", () => {
+    disconnectDB().then(() => {
+        process.exit(0);
+    });
+});
+
+process.on("SIGTERM", () => {
+    disconnectDB().then(() => {
+        process.exit(0);
+    });
+});
