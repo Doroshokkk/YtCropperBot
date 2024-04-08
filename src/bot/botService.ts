@@ -140,13 +140,15 @@ export const handleNumberInput = async (ctx: Context) => {
             // @ts-ignore
             setCropSessionField(chatId, "endSecond", timeStringToSeconds(ctx.message.text));
         } catch (error) {
+            console.error("error converting seconds:", error.message);
             ctx.reply("Please enter the number or a timecode");
+            return;
         }
 
-        const { videoUrl, startSecond, endSecond } = await getCropSesssionData(chatId);
-
-        ctx.reply("Loading...");
         try {
+            const { videoUrl, startSecond, endSecond } = await getCropSesssionData(chatId);
+
+            ctx.reply("Loading...");
             const response = await downloadCroppedSong(videoUrl, startSecond, endSecond);
             console.log("data", response.headers);
             replyWithAudioPopulated(ctx, response);
