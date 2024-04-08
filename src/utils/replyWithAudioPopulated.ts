@@ -8,7 +8,8 @@ export const replyWithAudioPopulated = (ctx, data) => {
             title: data.headers["x-song-name"],
             duration: data.headers["x-audio-duration"],
             performer: data.headers["x-channel-name"],
+            thumb: { url: data.headers["x-video-thumbnail"] },
             caption: "@ytAudioCropBot",
         },
-    );
+    ).then(({ audio }) => console.log(audio));
 };
