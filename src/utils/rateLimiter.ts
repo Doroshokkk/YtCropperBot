@@ -1,4 +1,6 @@
 import { redis } from "../redis/redisClient";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 export async function countDownloadedSongs(chatId: number) {
     try {
@@ -18,7 +20,7 @@ export async function reachedDownloadLimit(chatId: number) {
     try {
         const songsDownloaded = await redis.hget(`${chatId}-info`, "songsDownloaded");
         if (!songsDownloaded) return false;
-        if (parseInt(songsDownloaded) >= 10) return true;
+        if (parseInt(songsDownloaded) >= parseInt(process.env.DOWNLOADS_PER_HOUR_ALLOWED)) return true;
     } catch (error) {
         console.error("retrieving download count from redis", error);
     }
