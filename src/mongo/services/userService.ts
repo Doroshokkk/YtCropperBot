@@ -55,7 +55,7 @@ export const addDownloadedSong = async (userId: number, songId: string): Promise
         }
 
         const updatedUser = (await usersCollection.findOne({ tg_id: userId })) as unknown as User;
-        console.log(updatedUser);
+        console.log("updated:", updatedUser.username);
         return updatedUser;
     } catch (error) {
         console.error("Error adding downloaded song:", error);
