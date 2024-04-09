@@ -55,7 +55,7 @@ export const getFullSong = async (ctx: Context) => {
 
         const response = await downloadFullSong(videoUrl);
         console.log("data after success", response.headers);
-        replyWithAudioPopulated(ctx, response);
+        await replyWithAudioPopulated(ctx, response);
         await clearCropSession(chatId);
         await addDownloadedSong(chatId, videoUrl);
     } catch (error) {
@@ -105,7 +105,7 @@ export const cropToEnd = async (ctx: Context) => {
     try {
         const response = await downloadCroppedSong(videoUrl, startSecond, "end");
         console.log("data", response.headers);
-        replyWithAudioPopulated(ctx, response);
+        await replyWithAudioPopulated(ctx, response);
         await clearCropSession(chatId);
         await addDownloadedSong(chatId, videoUrl);
     } catch (error) {
@@ -151,7 +151,7 @@ export const handleNumberInput = async (ctx: Context) => {
             ctx.reply("Loading...");
             const response = await downloadCroppedSong(videoUrl, startSecond, endSecond);
             console.log("data", response.headers);
-            replyWithAudioPopulated(ctx, response);
+            await replyWithAudioPopulated(ctx, response);
             await clearCropSession(chatId);
             await addDownloadedSong(chatId, videoUrl);
         } catch (error) {
