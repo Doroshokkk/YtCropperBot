@@ -28,13 +28,13 @@ export async function setCropSessionField(chatId: number, fieldName: string, fie
     console.log(await redis.hgetall(chatId.toString()));
 }
 
-export async function getCropSesssionData(chatId: number): Promise<UserSession> {
+export async function getCropSesssionData(chatId: number): Promise<UserSession> | null {
     try {
         const redisData = await redis.hgetall(chatId.toString());
         if (Object.keys(redisData).length === 0) {
             return null;
         }
-        const session: UserSession = redisData as UserSession;
+        const session = redisData as UserSession;
         return session;
     } catch (error) {
         console.error("Error getting session data from Redis", error);

@@ -26,12 +26,18 @@ export const firstMessage = async (ctx: Context) => {
 export const respondToYoutubeLink = async (ctx: Context) => {
     try {
         const chatId = ctx.message.chat.id;
-        const limitDownload = await reachedDownloadLimit(chatId);
 
+        const limitDownload = await reachedDownloadLimit(chatId);
         if (limitDownload) {
             ctx.reply(
                 "Sorry, but you have downloaded 10 songs in the last hour. It's a bit too much for my servers, so you have to chill a bit. Try again in some time =)",
             );
+            return;
+        }
+
+        const existingCropSession = await getCropSesssionData(chatId);
+        if (existingCropSession) {
+            ctx.reply("Mate, choose what to do with the last song first please");
             return;
         }
 
