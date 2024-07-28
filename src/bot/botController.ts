@@ -1,5 +1,6 @@
 import { Telegraf } from "telegraf";
 import {
+    cancelCrop,
     cropFromStart,
     cropSong,
     cropToEnd,
@@ -24,6 +25,8 @@ export const setupBot = () => {
     bot.action("full", getFullSong);
 
     bot.action("crop", cropSong);
+
+    bot.action("cancel", cancelCrop);
 
     bot.hears(["Start", "start"], cropFromStart);
 
