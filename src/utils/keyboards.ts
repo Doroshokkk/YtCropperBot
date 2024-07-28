@@ -19,8 +19,19 @@ export const cancelKeyboard = {
     },
 };
 
+export const menuKeyboard = {
+    reply_markup: {
+        keyboard: [[{ text: "Language selection" }, { text: "Buy an advertisement" }, { text: "Whatever" }, { text: "Donate" }]],
+        one_time_keyboard: true, // Hide the keyboard after a button is pressed
+    },
+};
+
 export const inlineCropKeyboard = {
     reply_markup: {
-        inline_keyboard: [[{ text: "Full", callback_data: "full" }], [{ text: "Crop", callback_data: "crop" }]],
+        inline_keyboard: [
+            [{ text: "Full", callback_data: "full" }],
+            [{ text: "Crop", callback_data: "crop" }],
+            [{ text: "Cancel", callback_data: "cancel" }],
+        ],
     },
 };

@@ -2,7 +2,7 @@ import { initCropSession, getCropSesssionData, getVideoUrl, clearCropSession, se
 import { replyWithAudioPopulated } from "../utils/replyWithAudioPopulated";
 import { downloadFullSong, downloadCroppedSong } from "../utils/apiUtils";
 import { timeStringToSeconds } from "../utils/secondsConverter";
-import { cancelKeyboard, endingKeyboard, inlineCropKeyboard, startingKeyboard } from "../utils/keyboards";
+import { cancelKeyboard, endingKeyboard, inlineCropKeyboard, menuKeyboard, startingKeyboard } from "../utils/keyboards";
 import { Context } from "telegraf";
 import { reachedDownloadLimit } from "../utils/rateLimiter";
 import { addDownloadedSong, setUser } from "../mongo/services/userService";
@@ -46,7 +46,7 @@ export const respondToYoutubeLink = async (ctx: Context) => {
         ctx.reply("Choose an option:", inlineCropKeyboard);
     } catch (error) {
         console.error("Error calling API:", error.message);
-        ctx.reply("Error calling the API. Please try again later.");
+        ctx.reply("Error calling the API. Please try again later.", menuKeyboard);
     }
 };
 
@@ -57,7 +57,7 @@ export const getFullSong = async (ctx: Context) => {
         const videoUrl = await getVideoUrl(chatId);
 
         ctx.editMessageReplyMarkup({ inline_keyboard: [] });
-        ctx.reply("Loading...");
+        ctx.reply("Loading...", menuKeyboard);
 
         const response = await downloadFullSong(videoUrl);
         console.log("data after success", response.headers);
@@ -66,7 +66,7 @@ export const getFullSong = async (ctx: Context) => {
         await addDownloadedSong(chatId, videoUrl);
     } catch (error) {
         console.error("Error calling API:", error.message);
-        ctx.reply("Error calling the API. Please try again later.");
+        ctx.reply("Error calling the API. Please try again later.", menuKeyboard);
     }
 };
 
@@ -106,7 +106,7 @@ export const cropToEnd = async (ctx: Context) => {
 
     const { videoUrl, startSecond } = userSession;
 
-    ctx.reply("Loading...");
+    ctx.reply("Loading...", menuKeyboard);
 
     try {
         const response = await downloadCroppedSong(videoUrl, startSecond, "end");
@@ -116,7 +116,7 @@ export const cropToEnd = async (ctx: Context) => {
         await addDownloadedSong(chatId, videoUrl);
     } catch (error) {
         console.error("Error calling API:", error.message);
-        ctx.reply("Error calling the API. Please try again later.");
+        ctx.reply("Error calling the API. Please try again later.", menuKeyboard);
     }
 
     await clearCropSession(chatId);
@@ -154,7 +154,7 @@ export const handleNumberInput = async (ctx: Context) => {
         try {
             const { videoUrl, startSecond, endSecond } = await getCropSesssionData(chatId);
 
-            ctx.reply("Loading...");
+            ctx.reply("Loading...", menuKeyboard);
             const response = await downloadCroppedSong(videoUrl, startSecond, endSecond);
             console.log("data", response.headers);
             await replyWithAudioPopulated(ctx, response);
@@ -162,7 +162,7 @@ export const handleNumberInput = async (ctx: Context) => {
             await addDownloadedSong(chatId, videoUrl);
         } catch (error) {
             console.error("Error calling API:", error.message);
-            ctx.reply("Error calling the API. Please try again later.");
+            ctx.reply("Error calling the API. Please try again later.", menuKeyboard);
         }
     }
 };
@@ -190,6 +190,14 @@ export const handleOtherInput = async (ctx: Context) => {
 
 export const handleCancellation = async (ctx: Context) => {
     const chatId = ctx.message.chat.id;
-    ctx.reply("Sure, cancelled the cropping");
+    ctx.reply("Sure, cancelled the cropping", menuKeyboard);
+    await clearCropSession(chatId);
+};
+
+export const cancelCrop = async (ctx: Context) => {
+    // @ts-ignore
+    const chatId = ctx.update.callback_query.message.chat.id;
+    ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+    ctx.reply("Sure, cancelled this one", menuKeyboard);
     await clearCropSession(chatId);
 };
