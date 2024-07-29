@@ -56,7 +56,8 @@ export const getFullSong = async (ctx: Context) => {
         const chatId = ctx.update.callback_query.message.chat.id;
         const videoUrl = await getVideoUrl(chatId);
 
-        ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+        ctx.editMessageText("Choose an option: Full audio");
+        // ctx.editMessageReplyMarkup({ inline_keyboard: [] }); //not needed now as I edit the text without additional params. It resets buttons too
         ctx.reply("Loading...", menuKeyboard);
 
         const response = await downloadFullSong(videoUrl);
@@ -74,7 +75,8 @@ export const cropSong = (ctx: Context) => {
     // @ts-ignore
     const chatId = ctx.update.callback_query.message.chat.id;
     setCropSessionField(chatId, "state", "start");
-    ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+    ctx.editMessageText("Choose an option: Crop audio");
+    // ctx.editMessageReplyMarkup({ inline_keyboard: [] });
     ctx.reply("Enter start time (in plain seconds or MM:SS format): ", startingKeyboard);
 };
 
@@ -197,7 +199,7 @@ export const handleCancellation = async (ctx: Context) => {
 export const cancelCrop = async (ctx: Context) => {
     // @ts-ignore
     const chatId = ctx.update.callback_query.message.chat.id;
-    ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+    ctx.editMessageText("Choose an option: Cancelled");
     ctx.reply("Sure, cancelled this one", menuKeyboard);
     await clearCropSession(chatId);
 };
