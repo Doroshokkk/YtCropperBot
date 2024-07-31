@@ -46,6 +46,7 @@ export const respondToYoutubeLink = async (ctx: Context) => {
         ctx.reply("Choose an option:", inlineCropKeyboard);
     } catch (error) {
         console.error("Error calling API:", error.message);
+        await clearCropSession(ctx.message.chat.id);
         ctx.reply("Error calling the API. Please try again later.", menuKeyboard);
     }
 };
@@ -67,6 +68,8 @@ export const getFullSong = async (ctx: Context) => {
         await addDownloadedSong(chatId, videoUrl);
     } catch (error) {
         console.error("Error calling API:", error.message);
+        // @ts-ignore
+        await clearCropSession(ctx.update.callback_query.message.chat.id);
         ctx.reply("Error calling the API. Please try again later.", menuKeyboard);
     }
 };
@@ -118,6 +121,7 @@ export const cropToEnd = async (ctx: Context) => {
         await addDownloadedSong(chatId, videoUrl);
     } catch (error) {
         console.error("Error calling API:", error.message);
+        await clearCropSession(ctx.message.chat.id);
         ctx.reply("Error calling the API. Please try again later.", menuKeyboard);
     }
 
@@ -164,6 +168,7 @@ export const handleNumberInput = async (ctx: Context) => {
             await addDownloadedSong(chatId, videoUrl);
         } catch (error) {
             console.error("Error calling API:", error.message);
+            await clearCropSession(ctx.message.chat.id);
             ctx.reply("Error calling the API. Please try again later.", menuKeyboard);
         }
     }
