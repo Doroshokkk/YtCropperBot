@@ -2,9 +2,7 @@ version: '3'
 
 services:
   redis:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: redis:latest  # Use official Redis image
     container_name: bot-redis
     ports:
       - "6379:6379"
@@ -13,6 +11,18 @@ services:
       - redis_data:/data
     command: ["redis-server", "--appendonly", "yes"]  # Enable AOF persistence
 
+  rabbitmq:
+    image: rabbitmq:3-management  # Use RabbitMQ with management UI
+    container_name: bot-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "5672:5672"    # RabbitMQ default messaging port
+      - "15672:15672"  # RabbitMQ management console
+    restart: always
+    volumes:
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf  # Mount the config file
 
 volumes:
   redis_data:
