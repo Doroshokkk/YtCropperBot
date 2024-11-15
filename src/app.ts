@@ -4,6 +4,8 @@ import axios from "axios";
 import { setupBot } from "./bot/botController";
 import * as dotenv from "dotenv";
 import { connectDB, disconnectDB } from "./mongo/db";
+import webhookRouter from "./webhooks/webhookRoutes";
+import { Telegraf } from "telegraf";
 dotenv.config();
 
 const app = express();
@@ -19,8 +21,10 @@ const WEBHOOK_URL = SERVER_URL + URI;
 app.use(bodyParser.json());
 
 const init = async () => {
+    // await bot.telegram.deleteWebhook();
+
     const webhook = await axios.get(`${TELEGRAM_API}/setwebhook?url=${WEBHOOK_URL}`);
-    console.log(webhook.data);
+    console.log("--------webhook data: ", webhook.data);
     await connectDB()
         .then(() => {
             console.log("MongoDB connected");
@@ -30,6 +34,8 @@ const init = async () => {
             process.exit(1);
         });
 };
+
+app.use(webhookRouter);
 
 // Check the environment variable to determine the configuration
 if (ENVIRONMENT === "local") {

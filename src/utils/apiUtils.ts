@@ -6,16 +6,13 @@ const { API_URL } = process.env;
 
 export const downloadCroppedSong = async (videoUrl, startSecond, endSecond) => {
     const apiUrl = `${API_URL}/audio/crop-audio?videoUrl=${encodeURIComponent(videoUrl)}&startSecond=${startSecond}&endSecond=${endSecond}`;
-    const response = await axios.get(apiUrl, {
-        responseType: "arraybuffer",
-    });
+    const response = await axios.get(apiUrl);
     return response;
 };
 
 export const downloadFullSong = async (videoUrl) => {
     const apiUrl = `${API_URL}/audio/crop-audio?videoUrl=${encodeURIComponent(videoUrl)}`;
-    const response = await axios.get(apiUrl, {
-        responseType: "arraybuffer",
-    });
+    console.log("apiUrl", apiUrl);
+    const response = await axios.get(apiUrl);
     return response;
 };

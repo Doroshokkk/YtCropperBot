@@ -1,11 +1,10 @@
 import { initCropSession, getCropSesssionData, getVideoUrl, clearCropSession, setCropSessionField } from "../utils/userSessions";
-import { replyWithAudioPopulated } from "../utils/replyWithAudioPopulated";
-import { downloadFullSong, downloadCroppedSong } from "../utils/apiUtils";
 import { timeStringToSeconds } from "../utils/secondsConverter";
 import { cancelKeyboard, endingKeyboard, inlineCropKeyboard, menuKeyboard, startingKeyboard } from "../utils/keyboards";
 import { Context } from "telegraf";
 import { reachedDownloadLimit } from "../utils/rateLimiter";
-import { addDownloadedSong, setUser } from "../mongo/services/userService";
+import { setUser } from "../mongo/services/userService";
+import { sendToQueue } from "../queue/rabbit";
 
 export const firstMessage = async (ctx: Context) => {
     try {
@@ -59,13 +58,20 @@ export const getFullSong = async (ctx: Context) => {
 
         ctx.editMessageText("Choose an option: Full audio");
         // ctx.editMessageReplyMarkup({ inline_keyboard: [] }); //not needed now as I edit the text without additional params. It resets buttons too
-        ctx.reply("Loading...", menuKeyboard);
+        ctx.reply("Your request was sent to the queue, please wait...", menuKeyboard);
+        await sendToQueue({
+            chatId: chatId,
+            videoUrl,
+        });
 
-        const response = await downloadFullSong(videoUrl);
-        console.log("data after success", response.headers);
-        await replyWithAudioPopulated(ctx, response);
         await clearCropSession(chatId);
-        await addDownloadedSong(chatId, videoUrl);
+        // const response = await downloadFullSong(videoUrl);
+        // console.log("data after success", response.headers);
+        // console.log("data after success", response.data);
+
+        // await replyWithAudioPopulated(ctx, response);
+        // await clearCropSession(chatId);
+        // await addDownloadedSong(chatId, videoUrl);
     } catch (error) {
         console.error("Error calling API:", error.message);
         // @ts-ignore
@@ -114,18 +120,25 @@ export const cropToEnd = async (ctx: Context) => {
     ctx.reply("Loading...", menuKeyboard);
 
     try {
-        const response = await downloadCroppedSong(videoUrl, startSecond, "end");
-        console.log("data", response.headers);
-        await replyWithAudioPopulated(ctx, response);
+        await sendToQueue({
+            chatId: chatId,
+            videoUrl,
+            startSecond,
+            endSecond: "end",
+        });
+
         await clearCropSession(chatId);
-        await addDownloadedSong(chatId, videoUrl);
+        // const response = await downloadCroppedSong(videoUrl, startSecond, "end");
+        // console.log("data", response.headers);
+
+        // await replyWithAudioPopulated(ctx, response);
+        // await clearCropSession(chatId);
+        // await addDownloadedSong(chatId, videoUrl);
     } catch (error) {
         console.error("Error calling API:", error.message);
         await clearCropSession(ctx.message.chat.id);
         ctx.reply("Error calling the API. Please try again later.", menuKeyboard);
     }
-
-    await clearCropSession(chatId);
 };
 
 export const handleNumberInput = async (ctx: Context) => {
@@ -161,11 +174,21 @@ export const handleNumberInput = async (ctx: Context) => {
             const { videoUrl, startSecond, endSecond } = await getCropSesssionData(chatId);
 
             ctx.reply("Loading...", menuKeyboard);
-            const response = await downloadCroppedSong(videoUrl, startSecond, endSecond);
-            console.log("data", response.headers);
-            await replyWithAudioPopulated(ctx, response);
+
+            await sendToQueue({
+                chatId: chatId,
+                videoUrl,
+                startSecond,
+                endSecond,
+            });
+
             await clearCropSession(chatId);
-            await addDownloadedSong(chatId, videoUrl);
+
+            // const response = await downloadCroppedSong(videoUrl, startSecond, endSecond);
+            // console.log("data", response.headers);
+            // await replyWithAudioPopulated(ctx, response);
+            // await clearCropSession(chatId);
+            // await addDownloadedSong(chatId, videoUrl);
         } catch (error) {
             console.error("Error calling API:", error.message);
             await clearCropSession(ctx.message.chat.id);
