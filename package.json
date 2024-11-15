@@ -12,6 +12,7 @@
     "license": "ISC",
     "dependencies": {
         "@telegraf/session": "github:telegraf/session",
+        "amqplib": "^0.10.4",
         "axios": "^1.6.2",
         "body-parser": "^1.20.2",
         "dotenv": "^16.3.1",
