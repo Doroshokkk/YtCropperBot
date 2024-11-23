@@ -12,7 +12,7 @@ const connectDB = async () => {
     try {
         client = new MongoClient(uri as string);
         await client.connect();
-        db = client.db("users"); // Get the database instance
+        db = client.db("ytAudioCropBot"); // Get the database instance
         console.log("MongoDB connected successfully");
     } catch (error) {
         console.error("MongoDB connection error:", error);
