@@ -5,6 +5,7 @@ import { Context } from "telegraf";
 import { reachedDownloadLimit } from "../utils/rateLimiter";
 import { setUser } from "../mongo/services/userService";
 import { sendToQueue } from "../queue/rabbit";
+import { getAudioByUrl } from "../mongo/services/audioService";
 
 export const firstMessage = async (ctx: Context) => {
     try {
@@ -15,7 +16,7 @@ export const firstMessage = async (ctx: Context) => {
         const { id, first_name, username } = ctx.message.chat;
         console.log(ctx.message.chat);
 
-        setUser({ tg_id: id, username, first_name });
+        await setUser({ tg_id: id, username, first_name });
     } catch (error) {
         ctx.reply("Bot must be down currently =( \n Please stick around and try in some time!");
         console.error("Error creating user:", error.message);
@@ -57,6 +58,20 @@ export const getFullSong = async (ctx: Context) => {
         const videoUrl = await getVideoUrl(chatId);
 
         ctx.editMessageText("Choose an option: Full audio");
+
+        const audio = await getAudioByUrl(videoUrl);
+        if (audio?.file_id) {
+            await ctx.replyWithAudio(audio.file_id, {
+                title: audio.audio_name,
+                duration: audio.duration,
+                performer: audio?.channel_name,
+                // thumbnail: { url: info.videoDetails?.thumbnail?.thumbnails?.[0]?.url },
+                caption: "@ytAudioCropBot",
+            });
+            await clearCropSession(chatId);
+            return;
+        }
+
         // ctx.editMessageReplyMarkup({ inline_keyboard: [] }); //not needed now as I edit the text without additional params. It resets buttons too
         ctx.reply("Your request was sent to the queue, please wait...", menuKeyboard);
         await sendToQueue({
