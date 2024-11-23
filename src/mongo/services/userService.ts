@@ -1,11 +1,14 @@
 import { getDB } from "../db";
+import { Audio } from "../models/Audio";
 import { User, UserModel } from "../models/User";
+import { createAudioRecord } from "./audioService";
+import { createUserDownloadRecord } from "./userAudioDownloadService";
 
 export const setUser = async (userData: User): Promise<User | null> => {
     try {
         const db = getDB();
         if (!db) return;
-        const usersCollection = db.collection("user");
+        const usersCollection = db.collection("users");
 
         const user = await usersCollection.findOne({ tg_id: userData.tg_id });
 
@@ -18,7 +21,7 @@ export const setUser = async (userData: User): Promise<User | null> => {
             tg_id: userData.tg_id,
             username: userData.username,
             first_name: userData.first_name,
-            songs_downloaded: [],
+            songs_downloaded: 0,
         };
 
         const result = await usersCollection.insertOne(newUser);
@@ -35,30 +38,31 @@ export const setUser = async (userData: User): Promise<User | null> => {
     }
 };
 
-export const addDownloadedSong = async (userId: number, songId: string): Promise<User | null> => {
+export const addDownloadedSong = async (userId: number, audioInfo: Audio): Promise<User | null> => {
     try {
         const db = getDB();
         if (!db) return;
-        const usersCollection = db.collection("user");
+        const usersCollection = db.collection("users");
 
-        const user = await usersCollection.findOne({ tg_id: userId });
+        const user = await usersCollection.findOneAndUpdate({ tg_id: userId }, { $inc: { songs_downloaded: 1 } });
 
-        if (!user) {
-            throw new Error("User not found");
+        if (user) {
+            console.log(`Updated songs_downloaded for user: ${userId}, new value: ${user?.value?.songs_downloaded}`);
+        } else {
+            console.error(`User with tg_id ${userId} not found`);
         }
 
-        user.songs_downloaded.push(songId);
+        await createUserDownloadRecord(userId, audioInfo.youtube_url);
 
-        const result = await usersCollection.updateOne({ tg_id: userId }, { $push: { songs_downloaded: songId } });
-        if (result.modifiedCount !== 1) {
-            throw new Error("Failed to add downloaded song");
-        }
+        // user.songs_downloaded.push(songId);
 
-        const updatedUser = (await usersCollection.findOne({ tg_id: userId })) as unknown as User;
-        console.log("updated:", updatedUser.username);
-        return updatedUser;
+        // const result = await usersCollection.updateOne({ tg_id: userId }, { $push: { songs_downloaded: songId } });
+        // if (result.modifiedCount !== 1) {
+        //     throw new Error("Failed to add downloaded song");
+        // }
+        return user as unknown as User;
     } catch (error) {
-        console.error("Error adding downloaded song:", error);
+        console.error("Error creating audio:", error);
         throw error;
     }
 };
