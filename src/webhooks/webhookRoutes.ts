@@ -6,36 +6,38 @@ import { createAudioRecord } from "../mongo/services/audioService";
 dotenv.config();
 
 const webhookRouter = Router();
-const { TOKEN } = process.env;
-const TELEGRAM_API = `https://api.telegram.org/bot${TOKEN}`;
 
 console.log("webhook init");
 
 webhookRouter.post("/webhook/audio-processed", async (req, res) => {
-    const { chatId, youtube_url, audio_name, duration, isCropped, channel_name, file_id } = req.body;
+    try {
+        const { chatId, youtube_url, audio_name, duration, isCropped, channel_name, file_id } = req.body;
 
-    console.log("Received audio-processed data from webhook:");
-    console.log(`Chat ID: ${chatId}`);
+        console.log("Received audio-processed data from webhook:");
+        console.log(`Chat ID: ${chatId}`);
 
-    const audioInfo: Audio = {
-        youtube_url,
-        audio_name,
-        duration,
-        channel_name,
-        file_id,
-    };
+        const audioInfo: Audio = {
+            youtube_url,
+            audio_name,
+            duration,
+            channel_name,
+            file_id,
+        };
 
-    // if (!isCropped) {
-    const audioRecord = await createAudioRecord(audioInfo, isCropped);
-    console.log("audioRecord", audioRecord);
-    // }
+        // if (!isCropped) {
+        const audioRecord = await createAudioRecord(audioInfo, isCropped);
+        console.log("audioRecord", audioRecord);
+        // }
 
-    // await replyWithAudioWebhook(chatId, req.body);
-    // await clearCropSession(chatId);
+        // await replyWithAudioWebhook(chatId, req.body);
+        // await clearCropSession(chatId);
 
-    await addDownloadedSong(chatId, audioInfo);
+        await addDownloadedSong(chatId, audioInfo);
 
-    res.sendStatus(200);
+        res.sendStatus(200);
+    } catch (error) {
+        console.log("error", error);
+    }
 });
 
 export default webhookRouter;
