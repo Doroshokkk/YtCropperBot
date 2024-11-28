@@ -62,9 +62,9 @@ export const getFullSong = async (ctx: Context) => {
         const audio = await getAudioByUrl(videoUrl);
         if (audio?.file_id) {
             await ctx.replyWithAudio(audio.file_id, {
-                title: audio.audio_name,
-                duration: audio.duration,
-                performer: audio?.channel_name,
+                // title: audio.audio_name,
+                // duration: audio.duration,
+                // performer: audio?.channel_name,
                 // thumbnail: { url: info.videoDetails?.thumbnail?.thumbnails?.[0]?.url },
                 caption: "@ytAudioCropBot",
             });
@@ -72,7 +72,6 @@ export const getFullSong = async (ctx: Context) => {
             return;
         }
 
-        // ctx.editMessageReplyMarkup({ inline_keyboard: [] }); //not needed now as I edit the text without additional params. It resets buttons too
         ctx.reply("Your request was sent to the queue, please wait...", menuKeyboard);
         await sendToQueue({
             chatId: chatId,
@@ -132,7 +131,7 @@ export const cropToEnd = async (ctx: Context) => {
 
     const { videoUrl, startSecond } = userSession;
 
-    ctx.reply("Loading...", menuKeyboard);
+    ctx.reply("Your request was sent to the queue, please wait...", menuKeyboard);
 
     try {
         await sendToQueue({
@@ -143,12 +142,6 @@ export const cropToEnd = async (ctx: Context) => {
         });
 
         await clearCropSession(chatId);
-        // const response = await downloadCroppedSong(videoUrl, startSecond, "end");
-        // console.log("data", response.headers);
-
-        // await replyWithAudioPopulated(ctx, response);
-        // await clearCropSession(chatId);
-        // await addDownloadedSong(chatId, videoUrl);
     } catch (error) {
         console.error("Error calling API:", error.message);
         await clearCropSession(ctx.message.chat.id);
@@ -170,10 +163,12 @@ export const handleNumberInput = async (ctx: Context) => {
             // @ts-ignore
             setCropSessionField(chatId, "startSecond", timeStringToSeconds(ctx.message.text));
         } catch (error) {
-            ctx.reply(error);
+            console.log("error", error.message);
+            ctx.reply(error.message);
+            return;
         }
 
-        ctx.reply("Please provide the end timecode", endingKeyboard);
+        ctx.reply("Please enter the number or a timecode in MM:SS or M:SS format, or just a number of seconds.", endingKeyboard);
         setCropSessionField(chatId, "state", "end");
     } else if (userSession.state === "end") {
         try {
@@ -181,14 +176,14 @@ export const handleNumberInput = async (ctx: Context) => {
             setCropSessionField(chatId, "endSecond", timeStringToSeconds(ctx.message.text));
         } catch (error) {
             console.error("error converting seconds:", error.message);
-            ctx.reply("Please enter the number or a timecode");
+            ctx.reply("Please enter the number or a timecode in MM:SS or M:SS format, or just a number of seconds.");
             return;
         }
 
         try {
             const { videoUrl, startSecond, endSecond } = await getCropSesssionData(chatId);
 
-            ctx.reply("Loading...", menuKeyboard);
+            ctx.reply("Your request was sent to the queue, please wait...", menuKeyboard);
 
             await sendToQueue({
                 chatId: chatId,
@@ -198,12 +193,6 @@ export const handleNumberInput = async (ctx: Context) => {
             });
 
             await clearCropSession(chatId);
-
-            // const response = await downloadCroppedSong(videoUrl, startSecond, endSecond);
-            // console.log("data", response.headers);
-            // await replyWithAudioPopulated(ctx, response);
-            // await clearCropSession(chatId);
-            // await addDownloadedSong(chatId, videoUrl);
         } catch (error) {
             console.error("Error calling API:", error.message);
             await clearCropSession(ctx.message.chat.id);
@@ -243,6 +232,6 @@ export const cancelCrop = async (ctx: Context) => {
     // @ts-ignore
     const chatId = ctx.update.callback_query.message.chat.id;
     ctx.editMessageText("Choose an option: Cancelled");
-    ctx.reply("Sure, cancelled this one", menuKeyboard);
+    ctx.reply("Sure, cancelled this crop", menuKeyboard);
     await clearCropSession(chatId);
 };
