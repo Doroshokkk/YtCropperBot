@@ -1,39 +1,35 @@
-import { MongoClient, Db } from "mongodb";
+import mongoose from "mongoose";
 import * as dotenv from "dotenv";
 
 dotenv.config();
 
 const uri = process.env.MONGO_URI;
 
-let client: MongoClient;
-let db: Db;
-
 const connectDB = async () => {
     try {
-        client = new MongoClient(uri as string);
-        await client.connect();
-        db = client.db("ytAudioCropBot"); // Get the database instance
-        console.log("MongoDB connected successfully");
+        if (!uri) {
+            throw new Error("MongoDB URI is not defined in environment variables");
+        }
+
+        await mongoose.connect(uri, {
+            retryWrites: true,
+            appName: "ytAudioCropDb",
+        });
+
+        console.log("MongoDB connected successfully with Mongoose");
     } catch (error) {
         console.error("MongoDB connection error:", error);
-        //process.exit(1); // Exit with failure
+        process.exit(1); // Exit the application if the connection fails
     }
-};
-
-const getDB = (): Db => {
-    if (!db) {
-        console.error("mongo is not connected");
-        return;
-        // throw new Error("MongoDB is not connected");
-    }
-    return db;
 };
 
 const disconnectDB = async () => {
-    if (client) {
-        await client.close();
+    try {
+        await mongoose.disconnect();
         console.log("MongoDB disconnected successfully");
+    } catch (error) {
+        console.error("Error disconnecting MongoDB:", error);
     }
 };
 
-export { connectDB, getDB, disconnectDB };
+export { connectDB, disconnectDB };
