@@ -6,6 +6,7 @@ import { reachedDownloadLimit } from "../utils/rateLimiter";
 import { setUser } from "../mongo/services/userService";
 import { sendToQueue } from "../queue/rabbit";
 import { getAudioByUrl } from "../mongo/services/audioService";
+import { unifyYouTubeUrl } from "../utils/unifyURL";
 
 export const firstMessage = async (ctx: Context) => {
     try {
@@ -42,7 +43,8 @@ export const respondToYoutubeLink = async (ctx: Context) => {
         }
 
         // @ts-ignore
-        await initCropSession(chatId, ctx.message.text);
+        const unifiedUrl = unifyYouTubeUrl(ctx.message.text);
+        await initCropSession(chatId, unifiedUrl);
         ctx.reply("Choose an option:", inlineCropKeyboard);
     } catch (error) {
         console.error("Error calling API:", error.message);
