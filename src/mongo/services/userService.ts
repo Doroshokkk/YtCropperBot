@@ -54,3 +54,22 @@ export const addDownloadedSong = async (userId: number, audioInfo: Audio): Promi
         throw error;
     }
 };
+
+export const addReferencedSong = async (userId: number, youtube_url: string): Promise<User | null> => {
+    try {
+        const user = await UserModel.findOneAndUpdate({ tg_id: userId }, { $inc: { songs_downloaded: 1 } });
+
+        if (user) {
+            console.log(`Updated songs_downloaded for user: ${userId}, new value: ${user?.songs_downloaded}`);
+        } else {
+            console.error(`User with tg_id ${userId} not found`);
+        }
+
+        await createUserDownloadRecord(userId, youtube_url);
+
+        return user as unknown as User;
+    } catch (error) {
+        console.error("Error creating audio:", error);
+        throw error;
+    }
+};

@@ -3,7 +3,7 @@ import { timeStringToSeconds } from "../utils/secondsConverter";
 import { cancelKeyboard, endingKeyboard, inlineCropKeyboard, menuKeyboard, startingKeyboard } from "../utils/keyboards";
 import { Context } from "telegraf";
 import { reachedDownloadLimit } from "../utils/rateLimiter";
-import { setUser } from "../mongo/services/userService";
+import { addReferencedSong, setUser } from "../mongo/services/userService";
 import { sendToQueue } from "../queue/rabbit";
 import { getAudioByUrl } from "../mongo/services/audioService";
 import { unifyYouTubeUrl } from "../utils/unifyURL";
@@ -71,6 +71,7 @@ export const getFullSong = async (ctx: Context) => {
                 caption: "@ytAudioCropBot",
             });
             await clearCropSession(chatId);
+            await addReferencedSong(chatId, videoUrl);
             return;
         }
 
