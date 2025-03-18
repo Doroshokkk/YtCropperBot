@@ -4,6 +4,8 @@ export interface User {
     username: string;
     songs_downloaded?: number;
     first_name?: string;
+    created_at?: string;
+    updated_at?: string;
 }
 
 const userSchema = new Schema<User>(
@@ -12,6 +14,8 @@ const userSchema = new Schema<User>(
         username: { type: String, required: true },
         songs_downloaded: { type: Number },
         first_name: { type: String },
+        created_at: { type: String, default: () => new Date().toLocaleString() },
+        updated_at: { type: String, default: () => new Date().toLocaleString() },
     },
     {
         collection: "users",

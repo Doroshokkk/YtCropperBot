@@ -34,6 +34,7 @@ export const createAudioRecord = async (audioData: Audio, isCropped: boolean) =>
                 channel_name: audioData.channel_name,
                 duration: audioData.duration,
                 ...(audioData.file_id && { file_id: audioData.file_id }), // Update `file_id` only if it's not empty
+                updated_at: new Date().toLocaleString()
             },
         };
 
