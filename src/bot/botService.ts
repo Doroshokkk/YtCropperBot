@@ -82,13 +82,6 @@ export const getFullSong = async (ctx: Context) => {
         });
 
         await clearCropSession(chatId);
-        // const response = await downloadFullSong(videoUrl);
-        // console.log("data after success", response.headers);
-        // console.log("data after success", response.data);
-
-        // await replyWithAudioPopulated(ctx, response);
-        // await clearCropSession(chatId);
-        // await addDownloadedSong(chatId, videoUrl);
     } catch (error) {
         console.error("Error calling API:", error.message);
         // @ts-ignore
