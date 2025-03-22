@@ -221,7 +221,7 @@ export const handleOtherInput = async (ctx: Context) => {
 export const handleCancellation = async (ctx: Context) => {
     const chatId = ctx.message.chat.id;
     ctx.reply("Sure, cancelled the cropping", menuKeyboard);
-    await clearCropSession(chatId);
+    await clearCropSession(chatId, "cancelled");
 };
 
 export const cancelCrop = async (ctx: Context) => {
@@ -229,5 +229,5 @@ export const cancelCrop = async (ctx: Context) => {
     const chatId = ctx.update.callback_query.message.chat.id;
     ctx.editMessageText("Choose an option: Cancelled");
     ctx.reply("Sure, cancelled this crop", menuKeyboard);
-    await clearCropSession(chatId);
+    await clearCropSession(chatId, "cancelled");
 };

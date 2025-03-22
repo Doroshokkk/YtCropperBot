@@ -18,6 +18,10 @@ export async function incrementDownloadedSongs(chatId: number): Promise<void> {
 
 export async function reachedDownloadLimit(chatId: number): Promise<boolean> {
     try {
+        if (chatId === parseInt(process.env.ADMIN_CHAT_ID)) {
+            return false;
+        }
+
         const songsDownloaded = await redis.hget(`${chatId}-info`, "songsDownloaded");
         if (parseInt(songsDownloaded) >= parseInt(process.env.DOWNLOADS_ALLOWED_NOT_SUBSCRIBED)) return true;
         if (!songsDownloaded) return false;

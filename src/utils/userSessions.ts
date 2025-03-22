@@ -48,12 +48,12 @@ export async function getVideoUrl(chatId: number) {
     return videourl;
 }
 
-export async function clearCropSession(chatId: number) {
+export async function clearCropSession(chatId: number, outcome?: string) {
     try {
         // Delete specific fields related to downloading the song
         await redis.hdel(chatId.toString(), "videoUrl", "startSecond", "endSecond", "state");
         console.log(`Song download session cleared for chatId ${chatId}`);
-        await incrementDownloadedSongs(chatId);
+        if (outcome !== "cancelled") await incrementDownloadedSongs(chatId);
     } catch (error) {
         console.error("Error clearing song download session from Redis", error);
     }
