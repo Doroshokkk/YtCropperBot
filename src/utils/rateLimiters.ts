@@ -24,9 +24,34 @@ export async function reachedDownloadLimit(chatId: number): Promise<boolean> {
 
         const songsDownloaded = await redis.hget(`${chatId}-info`, "songsDownloaded");
         if (parseInt(songsDownloaded) >= parseInt(process.env.DOWNLOADS_ALLOWED_NOT_SUBSCRIBED)) return true;
-        if (!songsDownloaded) return false;
         return false;
     } catch (error) {
         console.error("retrieving download count from redis", error);
+    }
+}
+
+export async function incrementMessageCount(chatId: number): Promise<void> {
+    try {
+        const messageCount = await redis.hget(`${chatId}-msg-limit`, "messageCount");
+        if (messageCount) {
+            await redis.hincrby(`${chatId}-msg-limit`, "messageCount", 1);
+        } else {
+            await redis.hmset(`${chatId}-msg-limit`, "messageCount", 1);
+            await redis.expire(`${chatId}-msg-limit`, 60); // Set expiration to 60 seconds
+        }
+    } catch (error) {
+        console.error("Error setting message count in Redis", error);
+    }
+}
+
+export async function reachedMessageLimit(chatId: number): Promise<boolean> {
+    try {
+        const messageCount = await redis.hget(`${chatId}-msg-limit`, "messageCount");
+        console.log("messageCount:", messageCount);
+        const messageLimit = parseInt(process.env.MESSAGE_LIMIT) || 30;
+        if (parseInt(messageCount) >= messageLimit) return true;
+        return false;
+    } catch (error) {
+        console.error("Error retrieving message count from Redis", error);
     }
 }

@@ -11,12 +11,15 @@ import {
     handleOtherInput,
     respondToYoutubeLink,
 } from "./botService";
+import { messageRateLimiter } from "../middlewares/messageRateLimiter";
 import * as dotenv from "dotenv";
 dotenv.config();
 const { TOKEN } = process.env;
 
 export const setupBot = () => {
     const bot = new Telegraf(TOKEN);
+
+    bot.use(messageRateLimiter);
 
     bot.start(firstMessage);
 

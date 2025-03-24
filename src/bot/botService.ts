@@ -2,7 +2,7 @@ import { initCropSession, getCropSesssionData, getVideoUrl, clearCropSession, se
 import { timeStringToSeconds } from "../utils/secondsConverter";
 import { cancelKeyboard, endingKeyboard, inlineCropKeyboard, menuKeyboard, startingKeyboard } from "../utils/keyboards";
 import { Context } from "telegraf";
-import { reachedDownloadLimit } from "../utils/rateLimiter";
+import { reachedDownloadLimit } from "../utils/rateLimiters";
 import { addReferencedSong, setUser } from "../mongo/services/userService";
 import { sendToQueue } from "../queue/rabbit";
 import { getAudioByUrl } from "../mongo/services/audioService";

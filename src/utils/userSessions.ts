@@ -1,5 +1,5 @@
 import { redis } from "../redis/redisClient";
-import { incrementDownloadedSongs } from "./rateLimiter";
+import { incrementDownloadedSongs } from "./rateLimiters";
 
 export type UserSession = {
     videoUrl: string;
