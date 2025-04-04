@@ -5,13 +5,23 @@ export type UserSession = {
     videoUrl: string;
     startSecond: number | string;
     endSecond: number | string;
-    state: "start" | "end" | undefined;
+    state: "start" | "end" | "volume" | undefined;
+    volumeAdjustments?: string;
+    action: "crop" | "full" | "adjust";
 };
 
 export async function initCropSession(chatId: number, videoUrl: string) {
     console.log("setting to redis", chatId, videoUrl);
     try {
-        await redis.hmset(chatId.toString(), "videoUrl", videoUrl, "startSecond", 0, "endSecond", 0, "state", "");
+        await redis.hmset(
+            chatId.toString(),
+            "videoUrl", videoUrl,
+            "startSecond", "0",
+            "endSecond", "0",
+            "state", "",
+            "volumeAdjustments", "",
+            "action", ""
+        );
         await redis.expire(chatId.toString(), 86400); // TTL of 1 day
     } catch (error) {
         console.error("error setting to redis", error);
@@ -25,7 +35,7 @@ export async function setCropSessionField(chatId: number, fieldName: string, fie
     } catch (error) {
         console.error("error setting to redis", error);
     }
-    console.log(await redis.hgetall(chatId.toString()));
+    console.log("setCropSessionField", await redis.hgetall(chatId.toString()));
 }
 
 export async function getCropSesssionData(chatId: number): Promise<UserSession> | null {
@@ -51,7 +61,7 @@ export async function getVideoUrl(chatId: number) {
 export async function clearCropSession(chatId: number, outcome?: string) {
     try {
         // Delete specific fields related to downloading the song
-        await redis.hdel(chatId.toString(), "videoUrl", "startSecond", "endSecond", "state");
+        await redis.hdel(chatId.toString(), "videoUrl", "startSecond", "endSecond", "state", "volumeAdjustments", "action");
         console.log(`Song download session cleared for chatId ${chatId}`);
         if (outcome !== "cancelled") await incrementDownloadedSongs(chatId);
     } catch (error) {

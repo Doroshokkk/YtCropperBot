@@ -10,6 +10,8 @@ import {
     handleNumberInput,
     handleOtherInput,
     respondToYoutubeLink,
+    silenceSong,
+    handleVolumeAdjustments,
 } from "./botService";
 import { messageRateLimiter } from "../middlewares/messageRateLimiter";
 import * as dotenv from "dotenv";
@@ -29,6 +31,8 @@ export const setupBot = () => {
 
     bot.action("crop", cropSong);
 
+    bot.action("silence", silenceSong);
+
     bot.action("cancel", cancelCrop);
 
     bot.hears(["Start", "start"], cropFromStart);
@@ -36,6 +40,9 @@ export const setupBot = () => {
     bot.hears(["End", "end"], cropToEnd);
 
     bot.hears(["Cancel", "cancel"], handleCancellation);
+
+    bot.hears(/^(\d+(?::\d+)?-\d+(?::\d+)?=\d+%)(,\s*\d+(?::\d+)?-\d+(?::\d+)?=\d+%)*$/, handleVolumeAdjustments);
+    bot.hears(["Done", "done"], handleVolumeAdjustments);
 
     bot.hears(/\d+/, handleNumberInput);
 
