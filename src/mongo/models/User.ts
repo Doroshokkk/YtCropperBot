@@ -1,9 +1,12 @@
-import { Schema, model, Types } from "mongoose";
+import { Schema, model } from "mongoose";
+import { Lang } from "../../i18n";
+
 export interface User {
     tg_id: number;
     username: string;
     songs_downloaded?: number;
     first_name?: string;
+    language?: Lang;
     created_at?: string;
     updated_at?: string;
     stars_left?: number;
@@ -16,6 +19,7 @@ const userSchema = new Schema<User>(
         username: { type: String, required: true },
         songs_downloaded: { type: Number },
         first_name: { type: String },
+        language: { type: String },
         created_at: { type: String, default: () => new Date().toLocaleString() },
         updated_at: { type: String, default: () => new Date().toLocaleString() },
         stars_left: { type: Number, default: 0 },

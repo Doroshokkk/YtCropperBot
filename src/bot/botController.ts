@@ -1,5 +1,6 @@
 import { Telegraf } from "telegraf";
 import { message } from "telegraf/filters";
+import { hearKeys } from "../i18n";
 import {
     cancelCrop,
     cropFromStart,
@@ -9,13 +10,15 @@ import {
     getFullSong,
     handleCancellation,
     handleDonateAction,
+    handleLanguageSelection,
     handleNumberInput,
     handleOtherInput,
     handleSuccessfulPayment,
+    handleVolumeAdjustments,
     respondToYoutubeLink,
     showDonateMenu,
+    showLanguageMenu,
     silenceSong,
-    handleVolumeAdjustments,
 } from "./botService";
 import { messageRateLimiter } from "../middlewares/messageRateLimiter";
 import * as dotenv from "dotenv";
@@ -41,16 +44,20 @@ export const setupBot = () => {
 
     bot.action(/^donate_(\d+)$/, handleDonateAction);
 
-    bot.hears(["Start", "start"], cropFromStart);
+    bot.action(/^lang_(en|uk)$/, handleLanguageSelection);
 
-    bot.hears(["End", "end"], cropToEnd);
+    bot.hears(hearKeys("btn.start"), cropFromStart);
 
-    bot.hears(["Cancel", "cancel"], handleCancellation);
+    bot.hears(hearKeys("btn.end"), cropToEnd);
 
-    bot.hears(["Donate", "donate"], showDonateMenu);
+    bot.hears(hearKeys("btn.cancel"), handleCancellation);
+
+    bot.hears(hearKeys("menu.donate"), showDonateMenu);
+
+    bot.hears(hearKeys("menu.language"), showLanguageMenu);
 
     bot.hears(/^(\d+(?::\d+)?-\d+(?::\d+)?=\d+%)(,\s*\d+(?::\d+)?-\d+(?::\d+)?=\d+%)*$/, handleVolumeAdjustments);
-    bot.hears(["Done", "done"], handleVolumeAdjustments);
+    bot.hears(hearKeys("btn.done"), handleVolumeAdjustments);
 
     bot.hears(/\d+/, handleNumberInput);
 

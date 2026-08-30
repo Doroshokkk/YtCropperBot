@@ -1,8 +1,21 @@
 import { Audio } from "../models/Audio";
 import { User, UserModel } from "../models/User";
 import { PaymentModel } from "../models/Payment";
+import { Lang } from "../../i18n";
 import { createAudioRecord } from "./audioService";
 import { createUserDownloadRecord } from "./userAudioDownloadService";
+
+export const getUserLanguage = async (tgId: number): Promise<Lang | null> => {
+    const user = await UserModel.findOne({ tg_id: tgId });
+    if (!user?.language) {
+        return null;
+    }
+    return user.language as Lang;
+};
+
+export const setUserLanguage = async (tgId: number, language: Lang): Promise<void> => {
+    await UserModel.updateOne({ tg_id: tgId }, { $set: { language } });
+};
 
 export const getStarsLeft = async (tgId: number): Promise<number> => {
     const user = await UserModel.findOne({ tg_id: tgId });
