@@ -3,7 +3,7 @@ import { timeStringToSeconds } from "../utils/secondsConverter";
 import { cancelKeyboard, endingKeyboard, inlineCropKeyboard, inlineDonateKeyboard, menuKeyboard, startingKeyboard, volumeAdjustmentKeyboard } from "../utils/keyboards";
 import { Context } from "telegraf";
 import { reachedDownloadLimit } from "../utils/rateLimiters";
-import { addReferencedSong, setUser } from "../mongo/services/userService";
+import { addReferencedSong, creditStars, getStarsLeft, setUser } from "../mongo/services/userService";
 import { sendToQueue } from "../queue/rabbit";
 import { getAudioByUrl } from "../mongo/services/audioService";
 import { unifyYouTubeUrl } from "../utils/unifyURL";
@@ -28,6 +28,13 @@ function getCallbackChatId(ctx: Context): number | null {
     }
 
     return callbackQuery.message.chat.id;
+}
+
+async function finishDownload(ctx: Context, chatId: number, outcome?: string) {
+    const credit = await clearCropSession(chatId, outcome);
+    if (credit) {
+        await ctx.reply(`⭐ Used ${credit.starsConsumed} star(s). You have ${credit.starsLeft} stars left.`);
+    }
 }
 
 export const firstMessage = async (ctx: Context) => {
@@ -79,7 +86,7 @@ export const respondToYoutubeLink = async (ctx: Context) => {
         await ctx.reply("Choose an option:", inlineCropKeyboard);
     } catch (error) {
         console.error("Error calling API:", getErrorMessage(error));
-        await clearCropSession(chatId);
+        await finishDownload(ctx, chatId);
         await ctx.reply("Error calling the API. Please try again later.", menuKeyboard);
     }
 };
@@ -106,7 +113,7 @@ export const getFullSong = async (ctx: Context) => {
             await ctx.replyWithAudio(audio.file_id, {
                 caption: "@ytAudioCropBot",
             });
-            await clearCropSession(chatId);
+            await finishDownload(ctx, chatId);
             await addReferencedSong(chatId, videoUrl);
             return;
         }
@@ -118,10 +125,10 @@ export const getFullSong = async (ctx: Context) => {
             action: "full"
         });
 
-        await clearCropSession(chatId);
+        await finishDownload(ctx, chatId);
     } catch (error) {
         console.error("Error calling API:", getErrorMessage(error));
-        await clearCropSession(chatId);
+        await finishDownload(ctx, chatId);
         await ctx.reply("Error calling the API. Please try again later.", menuKeyboard);
     }
 };
@@ -210,10 +217,10 @@ export const cropToEnd = async (ctx: Context) => {
                 action: "crop"
             });
 
-            await clearCropSession(chatId);
+            await finishDownload(ctx, chatId);
         } catch (error) {
             console.error("Error calling API:", getErrorMessage(error));
-            await clearCropSession(chatId);
+            await finishDownload(ctx, chatId);
             await ctx.reply("Error calling the API. Please try again later.", menuKeyboard);
         }
     }
@@ -278,10 +285,10 @@ export const handleNumberInput = async (ctx: Context) => {
                         action: "crop"
                     });
 
-                    await clearCropSession(chatId);
+                    await finishDownload(ctx, chatId);
                 } catch (error) {
                     console.error("Error calling API:", getErrorMessage(error));
-                    await clearCropSession(chatId);
+                    await finishDownload(ctx, chatId);
                     await ctx.reply("Error calling the API. Please try again later.", menuKeyboard);
                 }
             }
@@ -381,10 +388,10 @@ export const handleVolumeAdjustments = async (ctx: Context) => {
                 action: "adjust"
             });
 
-            await clearCropSession(chatId);
+            await finishDownload(ctx, chatId);
         } catch (error) {
             console.error("Error calling API:", getErrorMessage(error));
-            await clearCropSession(chatId);
+            await finishDownload(ctx, chatId);
             await ctx.reply("Error calling the API. Please try again later.", menuKeyboard);
         }
         return;
@@ -454,28 +461,75 @@ export const handleVolumeAdjustments = async (ctx: Context) => {
     }
 };
 
-export const donateFiveStarsHandler = async (ctx: Context) => {
-    try {
-        await ctx.reply("Thank you for donating 5 stars! You now have 5 stars left.", menuKeyboard);
-    } catch (error) {
-        console.error("Error processing donation:", getErrorMessage(error));
-        await ctx.reply("An error occurred while processing your donation. Please try again later.");
+export const showDonateMenu = async (ctx: Context) => {
+    const textMessage = getTextMessage(ctx);
+    if (!textMessage) {
+        return;
     }
+
+    const starsLeft = await getStarsLeft(textMessage.chatId);
+    await ctx.reply(`You have ${starsLeft} stars. Choose how many to buy:`, inlineDonateKeyboard);
 };
 
-export const replyWithInvoice = async (ctx: Context) => {
+export const handleDonateAction = async (ctx: Context) => {
+    const callbackQuery = ctx.callbackQuery;
+    if (!callbackQuery || !("data" in callbackQuery)) {
+        return;
+    }
+
+    const match = callbackQuery.data.match(/^donate_(\d+)$/);
+    if (!match) {
+        return;
+    }
+
+    const amount = parseInt(match[1], 10);
+    if (![1, 5, 10, 100].includes(amount)) {
+        return;
+    }
+
+    await replyWithInvoice(ctx, amount);
+};
+
+export const handleSuccessfulPayment = async (ctx: Context) => {
+    const message = ctx.message;
+    if (!message || !("successful_payment" in message)) {
+        return;
+    }
+
+    const paymentInfo = message.successful_payment;
+    const userId = ctx.from?.id;
+    if (!userId) {
+        return;
+    }
+
+    const chargeId = paymentInfo.telegram_payment_charge_id;
+    const amountPaid = paymentInfo.total_amount;
+
+    console.log(`User ${userId} paid ${amountPaid} stars. Charge ID: ${chargeId}`);
+
+    await setUser({
+        tg_id: userId,
+        username: ctx.from?.username ?? "",
+        first_name: ctx.from?.first_name,
+    });
+
+    const starsLeft = await creditStars(userId, amountPaid, chargeId);
+    await ctx.reply(`🎉 Payment successful! You've received ${amountPaid} stars. You now have ${starsLeft} stars.`);
+};
+
+export const replyWithInvoice = async (ctx: Context, starAmount: number) => {
     try {
         await ctx.answerCbQuery();
         return ctx.replyWithInvoice({
             title: "Donate stars",
             description: "You can donate stars to get more downloads, or wait for the limit to reset. 1 star = 1 download",
-            payload: "stars_donation",
+            payload: `stars_donation_${starAmount}`,
             provider_token: "",
             currency: "XTR",
             prices: [
-                { label: "1 star", amount: 1 },
+                { label: `${starAmount} star(s)`, amount: starAmount },
             ],
-            start_parameter: "donate-stars",
+            start_parameter: `donate-stars-${starAmount}`,
             need_email: false,
             need_name: false,
             is_flexible: false,

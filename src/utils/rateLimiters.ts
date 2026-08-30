@@ -1,6 +1,7 @@
 import { redis } from "../redis/redisClient";
 import * as dotenv from "dotenv";
 import { env } from "./env";
+import { deductStar, getStarsLeft } from "../mongo/services/userService";
 
 dotenv.config();
 
@@ -24,6 +25,11 @@ export async function reachedDownloadLimit(chatId: number): Promise<boolean> {
             return false;
         }
 
+        const starsLeft = await getStarsLeft(chatId);
+        if (starsLeft > 0) {
+            return false;
+        }
+
         const songsDownloaded = await redis.hget(`${chatId}-info`, "songsDownloaded");
         if (!songsDownloaded) {
             return false;
@@ -37,6 +43,20 @@ export async function reachedDownloadLimit(chatId: number): Promise<boolean> {
         console.error("retrieving download count from redis", error);
         throw error;
     }
+}
+
+export async function consumeDownloadCredit(chatId: number): Promise<{ starsConsumed: number; starsLeft: number } | null> {
+    const songsDownloaded = await redis.hget(`${chatId}-info`, "songsDownloaded");
+    const freeLimit = parseInt(env("DOWNLOADS_ALLOWED_NOT_SUBSCRIBED"));
+    const atOrOverLimit = songsDownloaded && parseInt(songsDownloaded) >= freeLimit;
+
+    if (atOrOverLimit) {
+        const starsLeft = await deductStar(chatId);
+        return { starsConsumed: 1, starsLeft };
+    }
+
+    await incrementDownloadedSongs(chatId);
+    return null;
 }
 
 export async function incrementMessageCount(chatId: number): Promise<void> {

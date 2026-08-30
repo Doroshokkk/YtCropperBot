@@ -1,7 +1,50 @@
 import { Audio } from "../models/Audio";
 import { User, UserModel } from "../models/User";
+import { PaymentModel } from "../models/Payment";
 import { createAudioRecord } from "./audioService";
 import { createUserDownloadRecord } from "./userAudioDownloadService";
+
+export const getStarsLeft = async (tgId: number): Promise<number> => {
+    const user = await UserModel.findOne({ tg_id: tgId });
+    if (!user) {
+        return 0;
+    }
+    return user.stars_left ?? 0;
+};
+
+export const creditStars = async (tgId: number, amount: number, chargeId: string): Promise<number> => {
+    const existing = await PaymentModel.findOne({ charge_id: chargeId });
+    if (existing) {
+        return getStarsLeft(tgId);
+    }
+
+    await PaymentModel.create({ tg_id: tgId, charge_id: chargeId, amount });
+    const user = await UserModel.findOneAndUpdate(
+        { tg_id: tgId },
+        { $inc: { stars_left: amount, stars_donated: amount } },
+        { new: true },
+    );
+
+    if (!user) {
+        throw new Error(`User with tg_id ${tgId} not found`);
+    }
+
+    return user.stars_left ?? 0;
+};
+
+export const deductStar = async (tgId: number): Promise<number> => {
+    const user = await UserModel.findOneAndUpdate(
+        { tg_id: tgId, stars_left: { $gte: 1 } },
+        { $inc: { stars_left: -1 } },
+        { new: true },
+    );
+
+    if (!user) {
+        throw new Error(`User ${tgId} has no stars to deduct`);
+    }
+
+    return user.stars_left ?? 0;
+};
 
 export const setUser = async (userData: User): Promise<void> => {
     try {

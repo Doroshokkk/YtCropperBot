@@ -1,5 +1,5 @@
 import { redis } from "../redis/redisClient";
-import { incrementDownloadedSongs } from "./rateLimiters";
+import { consumeDownloadCredit } from "./rateLimiters";
 
 export type UserSession = {
     videoUrl: string;
@@ -60,11 +60,14 @@ export async function getVideoUrl(chatId: number) {
 
 export async function clearCropSession(chatId: number, outcome?: string) {
     try {
-        // Delete specific fields related to downloading the song
         await redis.hdel(chatId.toString(), "videoUrl", "startSecond", "endSecond", "state", "volumeAdjustments", "action");
         console.log(`Song download session cleared for chatId ${chatId}`);
-        if (outcome !== "cancelled") await incrementDownloadedSongs(chatId);
+        if (outcome !== "cancelled") {
+            return consumeDownloadCredit(chatId);
+        }
+        return null;
     } catch (error) {
         console.error("Error clearing song download session from Redis", error);
+        return null;
     }
 }

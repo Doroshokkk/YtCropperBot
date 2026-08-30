@@ -47,7 +47,14 @@ export const inlineCropKeyboard = {
 export const inlineDonateKeyboard = {
     reply_markup: {
         inline_keyboard: [
-            [{ text: "Donate stars (starting from 5)", callback_data: "donate_stars" }],
+            [
+                { text: "1 ⭐", callback_data: "donate_1" },
+                { text: "5 ⭐", callback_data: "donate_5" },
+            ],
+            [
+                { text: "10 ⭐", callback_data: "donate_10" },
+                { text: "100 ⭐", callback_data: "donate_100" },
+            ],
         ],
     },
 };
