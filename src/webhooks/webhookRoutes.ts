@@ -1,7 +1,7 @@
 import { Router } from "express";
 import * as dotenv from "dotenv";
 import { addDownloadedSong } from "../mongo/services/userService";
-import { Audio } from "src/mongo/models/Audio";
+import { Audio } from "../mongo/models/Audio";
 import { createAudioRecord } from "../mongo/services/audioService";
 dotenv.config();
 

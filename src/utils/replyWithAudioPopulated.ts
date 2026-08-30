@@ -8,7 +8,7 @@ const { TOKEN } = process.env;
 const TELEGRAM_API = `https://api.telegram.org/bot${TOKEN}`;
 const bot = new Telegraf(process.env.TOKEN as string);
 
-export const replyWithAudioPopulated = async (ctx: Context, data) => {
+export const replyWithAudioPopulated = async (ctx: Context, data: any) => {
     const params = data.data;
     console.log("params:", params);
     await ctx

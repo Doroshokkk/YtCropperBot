@@ -27,6 +27,7 @@ export function unifyYouTubeUrl(url: string): string {
 
         throw new Error('Invalid YouTube URL: Unrecognized format');
     } catch (error) {
-        throw new Error(`Invalid YouTube URL: ${error.message}`);
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(`Invalid YouTube URL: ${message}`);
     }
 }

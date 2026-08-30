@@ -43,3 +43,11 @@ export const inlineCropKeyboard = {
         ],
     },
 };
+
+export const inlineDonateKeyboard = {
+    reply_markup: {
+        inline_keyboard: [
+            [{ text: "Donate stars (starting from 5)", callback_data: "donate_stars" }],
+        ],
+    },
+};

@@ -38,7 +38,7 @@ export async function setCropSessionField(chatId: number, fieldName: string, fie
     console.log("setCropSessionField", await redis.hgetall(chatId.toString()));
 }
 
-export async function getCropSesssionData(chatId: number): Promise<UserSession> | null {
+export async function getCropSesssionData(chatId: number): Promise<UserSession | null> {
     try {
         const redisData = await redis.hgetall(chatId.toString());
         if (Object.keys(redisData).length === 0) {

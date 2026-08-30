@@ -1,10 +1,12 @@
 import IORedis from "ioredis";
 import * as dotenv from "dotenv";
+import { env } from "../utils/env";
+
 dotenv.config();
 
 export const redis = new IORedis({
-    host: process.env.REDIS_HOST,
-    port: parseInt(process.env.REDIS_PORT),
+    host: env("REDIS_HOST"),
+    port: parseInt(env("REDIS_PORT")),
 });
 
 redis.on("connect", () => {

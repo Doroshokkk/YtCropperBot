@@ -3,28 +3,28 @@ import { User, UserModel } from "../models/User";
 import { createAudioRecord } from "./audioService";
 import { createUserDownloadRecord } from "./userAudioDownloadService";
 
-export const setUser = async (userData: User): Promise<null> => {
+export const setUser = async (userData: User): Promise<void> => {
     try {
-        const filter = { tg_id: userData.tg_id }; // Use youtube_url as a unique identifier
+        const filter = { tg_id: userData.tg_id }; // Use tg_id as a unique identifier
         const update = {
-            $setOnInsert: userData, // Only insert the document if it doesn't already exist
+            $setOnInsert: {
+                tg_id: userData.tg_id,
+                username: userData?.username,
+                first_name: userData?.first_name,
+                songs_downloaded: 0,
+                stars_left: 0,
+                stars_donated: 0
+            }, // Only insert the document if it doesn't already exist
         };
         const options = { upsert: true }; // Perform an upsert
-
-        const newUser = {
-            tg_id: userData.tg_id,
-            username: userData?.username,
-            first_name: userData?.first_name,
-            songs_downloaded: 0,
-        };
 
         const result = await UserModel.updateOne(filter, update, options);
 
         if (result.acknowledged && result.upsertedCount === 1) {
-            console.log("User successfully created: ", newUser?.first_name);
+            console.log("User successfully created: ", userData?.first_name);
             return;
         } else if (result.acknowledged && result.matchedCount === 1) {
-            console.log("User pressed /start but he's registered: ", newUser?.first_name);
+            console.log("User pressed /start but he's registered: ", userData?.first_name);
             return;
         } else {
             console.log("user error", result);

@@ -1,6 +1,6 @@
 import { getRabbitConnection } from "./rabbitConnection";
 
-export async function sendToQueue(message) {
+export async function sendToQueue(message: Record<string, unknown>) {
     try {
         const connection = await getRabbitConnection();
         const channel = await connection.createChannel();
