@@ -1,7 +1,7 @@
 import { redis } from "../redis/redisClient";
 import * as dotenv from "dotenv";
 import { env } from "./env";
-import { deductStar, getStarsLeft } from "../mongo/services/userService";
+import { deductStar, getStarsLeft, refundStar } from "../mongo/services/userService";
 
 dotenv.config();
 
@@ -57,6 +57,26 @@ export async function consumeDownloadCredit(chatId: number): Promise<{ starsCons
 
     await incrementDownloadedSongs(chatId);
     return null;
+}
+
+export async function markPendingStarRefund(chatId: number, stars: number): Promise<void> {
+    await redis.set(`${chatId}-pending-star`, String(stars), "EX", 7200);
+}
+
+export async function confirmDownloadCredit(chatId: number): Promise<void> {
+    await redis.del(`${chatId}-pending-star`);
+}
+
+export async function refundPendingStar(chatId: number): Promise<{ starsRestored: number; starsLeft: number } | null> {
+    const pending = await redis.get(`${chatId}-pending-star`);
+    if (!pending) {
+        return null;
+    }
+
+    await redis.del(`${chatId}-pending-star`);
+    const starsRestored = parseInt(pending);
+    const starsLeft = await refundStar(chatId, starsRestored);
+    return { starsRestored, starsLeft };
 }
 
 export async function incrementMessageCount(chatId: number): Promise<void> {

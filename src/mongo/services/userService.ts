@@ -45,6 +45,20 @@ export const creditStars = async (tgId: number, amount: number, chargeId: string
     return user.stars_left ?? 0;
 };
 
+export const refundStar = async (tgId: number, amount = 1): Promise<number> => {
+    const user = await UserModel.findOneAndUpdate(
+        { tg_id: tgId },
+        { $inc: { stars_left: amount } },
+        { new: true },
+    );
+
+    if (!user) {
+        throw new Error(`User with tg_id ${tgId} not found`);
+    }
+
+    return user.stars_left ?? 0;
+};
+
 export const deductStar = async (tgId: number): Promise<number> => {
     const user = await UserModel.findOneAndUpdate(
         { tg_id: tgId, stars_left: { $gte: 1 } },

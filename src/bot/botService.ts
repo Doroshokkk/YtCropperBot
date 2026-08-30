@@ -12,7 +12,7 @@ import {
 } from "../utils/keyboards";
 import { Context } from "telegraf";
 import { Lang, isDoneInput, mapTimeError, t } from "../i18n";
-import { reachedDownloadLimit } from "../utils/rateLimiters";
+import { reachedDownloadLimit, confirmDownloadCredit, markPendingStarRefund, refundPendingStar } from "../utils/rateLimiters";
 import { addReferencedSong, creditStars, getStarsLeft, getUserLanguage, setUser, setUserLanguage } from "../mongo/services/userService";
 import { sendToQueue } from "../queue/rabbit";
 import { getAudioByUrl } from "../mongo/services/audioService";
@@ -56,7 +56,15 @@ async function requireLanguage(ctx: Context, chatId: number): Promise<Lang | nul
 async function finishDownload(ctx: Context, chatId: number, lang: Lang, outcome?: string) {
     const credit = await clearCropSession(chatId, outcome);
     if (credit) {
+        await markPendingStarRefund(chatId, credit.starsConsumed);
         await ctx.reply(t(lang, "starsUsed", { consumed: credit.starsConsumed, left: credit.starsLeft }));
+    }
+}
+
+async function failDownload(ctx: Context, chatId: number, lang: Lang) {
+    const refund = await refundPendingStar(chatId);
+    if (refund) {
+        await ctx.reply(t(lang, "starsRestored", { restored: refund.starsRestored, left: refund.starsLeft }));
     }
 }
 
@@ -147,7 +155,7 @@ export const respondToYoutubeLink = async (ctx: Context) => {
         await ctx.reply(t(lang, "chooseOption"), inlineCropKeyboard(lang));
     } catch (error) {
         console.error("Error calling API:", getErrorMessage(error));
-        await finishDownload(ctx, chatId, lang);
+        await failDownload(ctx, chatId, lang);
         await ctx.reply(t(lang, "apiError"), menuKeyboard(lang));
     }
 };
@@ -181,6 +189,7 @@ export const getFullSong = async (ctx: Context) => {
             });
             await finishDownload(ctx, chatId, lang);
             await addReferencedSong(chatId, videoUrl);
+            await confirmDownloadCredit(chatId);
             return;
         }
 
@@ -194,7 +203,7 @@ export const getFullSong = async (ctx: Context) => {
         await finishDownload(ctx, chatId, lang);
     } catch (error) {
         console.error("Error calling API:", getErrorMessage(error));
-        await finishDownload(ctx, chatId, lang);
+        await failDownload(ctx, chatId, lang);
         await ctx.reply(t(lang, "apiError"), menuKeyboard(lang));
     }
 };
@@ -300,7 +309,7 @@ export const cropToEnd = async (ctx: Context) => {
             await finishDownload(ctx, chatId, lang);
         } catch (error) {
             console.error("Error calling API:", getErrorMessage(error));
-            await finishDownload(ctx, chatId, lang);
+            await failDownload(ctx, chatId, lang);
             await ctx.reply(t(lang, "apiError"), menuKeyboard(lang));
         }
     }
@@ -367,7 +376,7 @@ export const handleNumberInput = async (ctx: Context) => {
                     await finishDownload(ctx, chatId, lang);
                 } catch (error) {
                     console.error("Error calling API:", getErrorMessage(error));
-                    await finishDownload(ctx, chatId, lang);
+                    await failDownload(ctx, chatId, lang);
                     await ctx.reply(t(lang, "apiError"), menuKeyboard(lang));
                 }
             }
@@ -484,7 +493,7 @@ export const handleVolumeAdjustments = async (ctx: Context) => {
             await finishDownload(ctx, chatId, lang);
         } catch (error) {
             console.error("Error calling API:", getErrorMessage(error));
-            await finishDownload(ctx, chatId, lang);
+            await failDownload(ctx, chatId, lang);
             await ctx.reply(t(lang, "apiError"), menuKeyboard(lang));
         }
         return;

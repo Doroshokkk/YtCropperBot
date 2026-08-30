@@ -3,6 +3,8 @@ import * as dotenv from "dotenv";
 import { addDownloadedSong } from "../mongo/services/userService";
 import { Audio } from "../mongo/models/Audio";
 import { createAudioRecord } from "../mongo/services/audioService";
+import { confirmDownloadCredit } from "../utils/rateLimiters";
+import { notifyDownloadFailed } from "../utils/downloadFailure";
 dotenv.config();
 
 const webhookRouter = Router();
@@ -24,19 +26,29 @@ webhookRouter.post("/webhook/audio-processed", async (req, res) => {
             file_id,
         };
 
-        // if (!isCropped) {
         const audioRecord = await createAudioRecord(audioInfo, isCropped);
         console.log("audioRecord", audioRecord);
-        // }
-
-        // await replyWithAudioWebhook(chatId, req.body);
-        // await clearCropSession(chatId);
 
         await addDownloadedSong(chatId, audioInfo);
+        await confirmDownloadCredit(chatId);
 
         res.sendStatus(200);
     } catch (error) {
         console.log("error", error);
+        res.sendStatus(500);
+    }
+});
+
+webhookRouter.post("/webhook/audio-failed", async (req, res) => {
+    try {
+        const { chatId } = req.body;
+        console.log("Received audio-failed webhook for chatId:", chatId);
+
+        await notifyDownloadFailed(chatId);
+        res.sendStatus(200);
+    } catch (error) {
+        console.log("error", error);
+        res.sendStatus(500);
     }
 });
 

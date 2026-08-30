@@ -42,6 +42,8 @@ export const en = {
         "Each adjustment should be in the format: start-end=percentage%\n" +
         "Time can be in M:SS format (e.g., 1:28) or seconds (e.g., 88)",
     starsUsed: "⭐ Used {consumed} star(s). You have {left} stars left.",
+    starsRestored: "⭐ Download failed. {restored} star(s) restored. You have {left} stars left.",
+    downloadFailed: "Download failed. Please try again later.",
     donateMenu: "You have {stars} stars. Choose how many to buy:",
     paymentSuccess: "🎉 Payment successful! You've received {paid} stars. You now have {left} stars.",
     donationError: "An error occurred while processing your donation. Please try again later.",
